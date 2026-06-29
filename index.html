@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudio Lash & Brow - Sistema</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Extraemos los Hooks directamente del objeto global de React
+        const { useState, useEffect, useMemo, useCallback } = React;
+
+        /* ============================================================
+           UTILIDADES DE ALMACENAMIENTO (LOCALSTORAGE CORREGIDO)
+           ============================================================ */
+        const STORAGE_KEYS = {
+          CLIENTS: "studio:clients",
+          APPOINTMENTS: "studio:appointments",
+        };
+
+        function storageGet(key, fallback) {
+          try {
+            const res = localStorage.getItem(key);
+            if (!res) return fallback;
+            return JSON.parse(res);
+          } catch (e) {
+            return fallback;
+          }
+        }
+
+        function storageSet(key, value) {
+          try {
+            localStorage.setItem(key, JSON.stringify(value));
+            return true;
+          } catch (e) {
+            console.error("Error guardando", key, e);
+            return false;
+          }
+        }
+
+        /* ============================================================
+           DATOS BASE
+           ============================================================ */
+        const SERVICE_CATEGORIES = [
+          { id: "pestanas", label: "Extensión de pestañas", icon: "lash" },
+          { id: "lifting", label: "Lifting de pestañas", icon: "lift" },
+          { id: "laminado", label: "Laminado de cejas", icon: "brow" },
+          { id: "depilacion", label: "Depilación", icon: "wax" },
+          { id: "unas", label: "Uñas", icon: "nail" },
+          { id: "otro", label: "Otro servicio", icon: "star" },
+        ];
+
+        const CURVATURAS = ["B", "C", "CC", "D", "DD", "L", "L+", "M"];
+        const GROSORES = ["0.03", "0.05", "0.07", "0.10", "0.12", "0.15", "0.18", "0.20", "0.25"];
+        const TECNICAS = ["Clásico 1:1", "Híbrido", "Volumen ruso 2D-3D", "Volumen ruso 4D-6D", "Mega volumen", "Retoque / relleno", "Retiro"];
+
+        function uid(prefix = "id") {
+          return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        }
+
+        function emptyClient() {
+          return {
+            id: uid("cli"),
+            nombre: "",
+            telefono: "",
+            fechaNacimiento: "",
+            observaciones: "",
+            alergias: "",
+            creadoEn: new Date().toISOString(),
+            historial: [],
+          };
+        }
+
+        function emptyHistorialEntry() {
+          return {
+            id: uid("hist"),
+            fecha: new Date().toISOString().slice(0, 10),
+            categoria: "pestanas",
+            servicio: "",
+            tipoPestanas: "",
+            curvatura: "",
+            grosor: "",
+            longitud: "",
+            tecnica: "",
+            mapping: "",
+            productos: "",
+            tiempoMinutos: "",
+            precio: "",
+            observaciones: "",
+          };
+        }
+
+        function emptyAppointment() {
+          return {
+            id: uid("apt"),
+            clienteId: "",
+            clienteNombre: "",
+            fecha: new Date().toISOString().slice(0, 10),
+            hora: "10:00",
+            categoria: "pestanas",
+            servicio: "",
+            estado: "pendiente",
+            notas: "",
+          };
+        }
+
+        /* ============================================================
+           ICONOS
+           ============================================================ */
+        const Icon = ({ name, size = 18, className = "" }) => {
+          const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round", className };
+          switch (name) {
+            case "search": return <svg {...common}><circle cx="10.5" cy="10.5" r="6.5" /><line x1="20" y1="20" x2="15.3" y2="15.3" /></svg>;
+            case "plus": return <svg {...common}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>;
+            case "calendar": return <svg {...common}><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="3" x2="8" y2="7" /><line x1="16" y1="3" x2="16" y2="7" /></svg>;
+            case "book": return <svg {...common}><path d="M4 4.5C4 3.7 4.7 3 5.5 3H12v18H5.5c-.8 0-1.5-.7-1.5-1.5V4.5z" /><path d="M20 4.5c0-.8-.7-1.5-1.5-1.5H12v18h6.5c.8 0 1.5-.7 1.5-1.5V4.5z" /></svg>;
+            case "phone": return <svg {...common}><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L14 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></svg>;
+            case "back": return <svg {...common}><line x1="19" y1="12" x2="5" y2="12" /><polyline points="11 6 5 12 11 18" /></svg>;
+            case "check": return <svg {...common}><polyline points="20 6 9 17 4 12" /></svg>;
+            case "x": return <svg {...common}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
+            case "edit": return <svg {...common}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>;
+            case "trash": return <svg {...common}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 6" /><path d="M10 11v5" /><path d="M14 11v5" /><path d="M9 6V4.5C9 3.7 9.7 3 10.5 3h3c.8 0 1.5.7 1.5 1.5V6" /></svg>;
+            case "camera": return <svg {...common}><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13.5" r="3.5" /></svg>;
+            case "lash": return <svg {...common}><path d="M3 15c2-5 6-8 9-8s7 3 9 8" /><line x1="6" y1="15" x2="5" y2="10.5" /><line x1="9.5" y1="13" x2="9" y2="8.5" /><line x1="13" y1="12" x2="13" y2="7.5" /><line x1="16.5" y1="13" x2="17" y2="8.5" /><line x1="20" y1="15" x2="21" y2="10.5" /></svg>;
+            case "lift": return <svg {...common}><path d="M3 16c2.5-7 6.5-11 9-11s6.5 4 9 11" /></svg>;
+            case "brow": return <svg {...common}><path d="M4 13c2-4 5-6 8-6s6 2 8 6" /></svg>;
+            case "wax": return <svg {...common}><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" /></svg>;
+            case "nail": return <svg {...common}><path d="M9 21V11a3 3 0 0 1 6 0v10" /><path d="M9 21h6" /></svg>;
+            case "star": return <svg {...common}><path d="M12 3l2.6 5.8 6.4.7-4.8 4.3 1.3 6.2L12 16.8 6.5 20l1.3-6.2-4.8-4.3 6.4-.7z" /></svg>;
+            case "chevronLeft": return <svg {...common}><polyline points="15 18 9 12 15 6" /></svg>;
+            case "chevronRight": return <svg {...common}><polyline points="9 18 15 12 9 6" /></svg>;
+            case "alert": return <svg {...common}><path d="M12 3 2 20h20L12 3z" /><line x1="12" y1="10" x2="12" y2="14.5" /><circle cx="12" cy="17.2" r="0.4" fill="currentColor" /></svg>;
+            case "image": return <svg {...common}><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.5" /><path d="M21 16l-5-5-4 4-2-2-5 5" /></svg>;
+            case "clock": return <svg {...common}><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 16 14" /></svg>;
+            case "list": return <svg {...common}><line x1="9" y1="6" x2="20" y2="6" /><line x1="9" y1="12" x2="20" y2="12" /><line x1="9" y1="18" x2="20" y2="18" /><circle cx="4.5" cy="6" r="0.8" fill="currentColor" /><circle cx="4.5" cy="12" r="0.8" fill="currentColor" /><circle cx="4.5" cy="18" r="0.8" fill="currentColor" /></svg>;
+            default: return null;
+          }
+        };
+
+        const categoryIcon = (catId) => SERVICE_CATEGORIES.find((c) => c.id === catId)?.icon || "star";
+        const categoryLabel = (catId) => SERVICE_CATEGORIES.find((c) => c.id === catId)?.label || "Servicio";
+
+        /* ============================================================
+           COMPONENTE APP PRINCIPAL
+           ============================================================ */
+        function App() {
+          const [view, setView] = useState("clientes");
+          const [clients, setClients] = useState([]);
+          const [appointments, setAppointments] = useState([]);
+          const [loading, setLoading] = useState(true);
+          const [selectedClientId, setSelectedClientId] = useState(null);
+          const [toast, setToast] = useState(null);
+
+          useEffect(() => {
+            const c = storageGet(STORAGE_KEYS.CLIENTS, []);
+            const a = storageGet(STORAGE_KEYS.APPOINTMENTS, []);
+            setClients(c);
+            setAppointments(a);
+            setLoading(false);
+          }, []);
+
+          const showToast = useCallback((msg) => {
+            setToast(msg);
+            setTimeout(() => setToast(null), 2200);
+          }, []);
+
+          const persistClients = useCallback((next) => {
+            setClients(next);
+            const ok = storageSet(STORAGE_KEYS.CLIENTS, next);
+            if (!ok) showToast("No se pudo guardar. Intenta de nuevo.");
+          }, [showToast]);
+
+          const persistAppointments = useCallback((next) => {
+            setAppointments(next);
+            const ok = storageSet(STORAGE_KEYS.APPOINTMENTS, next);
+            if (!ok) showToast("No se pudo guardar. Intenta de nuevo.");
+          }, [showToast]);
+
+          const selectedClient = useMemo(
+            () => clients.find((c) => c.id === selectedClientId) || null,
+            [clients, selectedClientId]
+          );
+
+          const openClient = (id) => {
+            setSelectedClientId(id);
+            setView("ficha");
+          };
+
+          if (loading) {
+            return (
+              <div style={styles.loadingScreen}>
+                <div style={styles.loadingMark}>✦</div>
+                <p style={styles.loadingText}>Abriendo el estudio…</p>
+              </div>
+            );
+          }
+
+          return (
+            <div style={styles.app}>
+              <Sidebar view={view} setView={setView} clearSelection={() => setSelectedClientId(null)} />
+              <main style={styles.main}>
+                {view === "clientes" && (
+                  <ClientList
+                    clients={clients}
+                    onOpen={openClient}
+                    onCreate={(newClient) => {
+                      const next = [newClient, ...clients];
+                      persistClients(next);
+                      showToast("Ficha creada");
+                      openClient(newClient.id);
+                    }}
+                  />
+                )}
+                {view === "ficha" && selectedClient && (
+                  <ClientFile
+                    client={selectedClient}
+                    onBack={() => setView("clientes")}
+                    onUpdate={(updated) => {
+                      const next = clients.map((c) => (c.id === updated.id ? updated : c));
+                      persistClients(next);
+                    }}
+                    onDelete={(id) => {
+                      const next = clients.filter((c) => c.id !== id);
+                      persistClients(next);
+                      setView("clientes");
+                      showToast("Ficha eliminada");
+                    }}
+                    showToast={showToast}
+                  />
+                )}
+                {view === "agenda" && (
+                  <Agenda
+                    appointments={appointments}
+                    clients={clients}
+                    onUpdate={persistAppointments}
+                    onOpenClient={openClient}
+                    showToast={showToast}
+                  />
+                )}
+              </main>
+              {toast && <div style={styles.toast}>{toast}</div>}
+            </div>
+          );
+        }
+
+        /* ============================================================
+           COMPONENTES COMPLEMENTARIOS (SIDEBAR, LISTAS, ETC.)
+           ============================================================ */
+        function Sidebar({ view, setView, clearSelection }) {
+          const items = [
+            { id: "clientes", label: "Clientas", icon: "book" },
+            { id: "agenda", label: "Agenda", icon: "calendar" },
+          ];
+          return (
+            <aside style={styles.sidebar} class="studio-sidebar">
+              <div style={styles.brand}>
+                <div style={styles.brandMark}>✦</div>
+                <div>
+                  <div style={styles.brandTitle}>Estudio</div>
+                  <div style={styles.brandSub}>Fichas &amp; agenda</div>
+                </div>
+              </div>
+              <nav style={styles.nav}>
+                {items.map((it) => (
+                  <button
+                    key={it.id}
+                    onClick={() => {
+                      clearSelection();
+                      setView(it.id);
+                    }}
+                    style={{
+                      ...styles.navBtn,
+                      ...(view === it.id || (view === "ficha" && it.id === "clientes") ? styles.navBtnActive : {}),
+                    }}
+                  >
+                    <Icon name={it.icon} size={17} />
+                    <span>{it.label}</span>
+                  </button>
+                ))}
+              </nav>
+              <div style={styles.sidebarFoot}>
+                <div style={styles.foldTabs}>
+                  {SERVICE_CATEGORIES.slice(0, 5).map((c) => (
+                    <div key={c.id} style={styles.foldTab} title={c.label}>
+                      <Icon name={c.icon} size={13} />
+                    </div>
+                  ))}
+                </div>
+                <p style={styles.foldNote}>Preparado para más servicios</p>
+              </div>
+            </aside>
+          );
+        }
+
+        function ClientList({ clients, onOpen, onCreate }) {
+          const [query, setQuery] = useState("");
+          const [showNew, setShowNew] = useState(false);
+
+          const filtered = useMemo(() => {
+            const q = query.trim().toLowerCase();
+            if (!q) return clients;
+            return clients.filter(
+              (c) =>
+                c.nombre.toLowerCase().includes(q) ||
+                (c.telefono || "").toLowerCase().includes(q)
+            );
+          }, [clients, query]);
+
+          return (
+            <div style={styles.page}>
+              <header style={styles.pageHeader}>
+                <div>
+                  <p style={styles.eyebrow}>Tu cartera de clientas</p>
+                  <h1 style={styles.h1}>Fichas</h1>
+                </div>
+                <button style={styles.primaryBtn} onClick={() => setShowNew(true)}>
+                  <Icon name="plus" size={16} />
+                  Nueva ficha
+                </button>
+              </header>
+
+              <div style={styles.searchBar}>
+                <Icon name="search" size={16} className="search-icon" />
+                <input
+                  style={styles.searchInput}
+                  placeholder="Buscar por nombre o teléfono…"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              {filtered.length === 0 && (
+                <div style={styles.emptyState}>
+                  <Icon name="book" size={28} className="empty-icon" />
+                  <p style={styles.emptyTitle}>
+                    {clients.length === 0 ? "Aún no hay fichas creadas" : "No encontramos coincidencias"}
+                  </p>
+                  <p style={styles.emptyText}>
+                    {clients.length === 0 ? "Crea la primera ficha para empezar." : "Intenta con otro nombre."}
+                  </p>
+                </div>
+              )}
+
+              <div style={styles.clientGrid}>
+                {filtered.map((c) => (
+                  <ClientCard key={c.id} client={c} onOpen={() => onOpen(c.id)} />
+                ))}
+              </div>
+
+              {showNew && (
+                <NewClientModal
+                  onClose={() => setShowNew(false)}
+                  onSave={(client) => {
+                    setShowNew(false);
+                    onCreate(client);
+                  }}
+                />
+              )}
+            </div>
+          );
+        }
+
+        function ClientCard({ client, onOpen }) {
+          const lastVisit = client.historial[0];
+          const initials = client.nombre.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+
+          return (
+            <button style={styles.clientCard} onClick={onOpen}>
+              <div style={styles.clientAvatar}>{initials || "?"}</div>
+              <div style={styles.clientCardBody}>
+                <div style={styles.clientCardName}>{client.nombre || "Sin nombre"}</div>
+                <div style={styles.clientCardMeta}>
+                  <Icon name="phone" size={12} />
+                  <span>{client.telefono || "Sin teléfono"}</span>
+                </div>
+                {lastVisit ? (
+                  <div style={styles.clientCardLast}>
+                    Última visita · {formatDate(lastVisit.fecha)} · {categoryLabel(lastVisit.categoria)}
+                  </div>
+                ) : (
+                  <div style={styles.clientCardLastEmpty}>Sin visitas registradas</div>
+                )}
+                {client.alergias && (
+                  <div style={styles.allergyPill}>
+                    <Icon name="alert" size={11} />
+                    Alergias
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        }
+
+        function NewClientModal({ onClose, onSave }) {
+          const [form, setForm] = useState(emptyClient());
+          const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+          const canSave = form.nombre.trim().length > 0;
+
+          return (
+            <Modal onClose={onClose} title="Nueva ficha de clienta">
+              <div style={styles.formGrid}>
+                <Field label="Nombre completo *">
+                  <input style={styles.input} value={form.nombre} onChange={set("nombre")} autoFocus placeholder="Ej. María Fernanda Ruiz" />
+                </Field>
+                <Field label="Teléfono">
+                  <input style={styles.input} value={form.telefono} onChange={set("telefono")} placeholder="Ej. 04XX-XXXXXXX" />
+                </Field>
+                <Field label="Fecha de nacimiento (opcional)">
+                  <input type="date" style={styles.input} value={form.fechaNacimiento} onChange={set("fechaNacimiento")} />
+                </Field>
+                <Field label="Alergias o contraindicaciones">
+                  <input style={styles.input} value={form.alergias} onChange={set("alergias")} placeholder="Ej. Alergia al pegamento" />
+                </Field>
+                <Field label="Observaciones" full>
+                  <textarea style={styles.textarea} value={form.observaciones} onChange={set("observaciones")} placeholder="Detalles importantes..." />
+                </Field>
+              </div>
+              <div style={styles.modalActions}>
+                <button style={styles.secondaryBtn} onClick={onClose}>Cancelar</button>
+                <button style={{ ...styles.primaryBtn, opacity: canSave ? 1 : 0.5 }} disabled={!canSave} onClick={() => onSave(form)}>
+                  <Icon name="check" size={16} />
+                  Crear ficha
+                </button>
+              </div>
+            </Modal>
+          );
+        }
+
+        function ClientFile({ client, onBack, onUpdate, onDelete, showToast }) {
+          const [tab, setTab] = useState("info");
+          const [editingInfo, setEditingInfo] = useState(false);
+          const [showNewEntry, setShowNewEntry] = useState(false);
+          const [confirmDelete, setConfirmDelete] = useState(false);
+
+          const sortedHistorial = useMemo(
+            () => [...client.historial].sort((a, b) => (a.fecha < b.fecha ? 1 : -1)),
+            [client.historial]
+          );
+
+          return (
+            <div style={styles.page}>
+              <button style={styles.backLink} onClick={onBack}>
+                <Icon name="back" size={16} />
+                Todas las clientas
+              </button>
+
+              <header style={styles.fileHeader}>
+                <div style={styles.fileHeaderLeft}>
+                  <div style={styles.fileAvatar}>
+                    {client.nombre.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?"}
+                  </div>
+                  <div>
+                    <h1 style={styles.h1}>{client.nombre}</h1>
+                    <div style={styles.fileMetaRow}>
+                      <Icon name="phone" size={13} />
+                      <span>{client.telefono || "Sin teléfono"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={styles.fileHeaderActions}>
+                  <button style={styles.iconBtn} onClick={() => setEditingInfo(true)}><Icon name="edit" size={15} /></button>
+                  <button style={styles.iconBtnDanger} onClick={() => setConfirmDelete(true)}><Icon name="trash" size={15} /></button>
+                </div>
+              </header>
+
+              {client.alergias && (
+                <div style={styles.allergyBanner}>
+                  <Icon name="alert" size={15} />
+                  <span><strong>Alergias / contraindicaciones:</strong> {client.alergias}</span>
+                </div>
+              )}
+
+              <div style={styles.tabs}>
+                <TabBtn active={tab === "info"} onClick={() => setTab("info")} icon="book" label="Observaciones" />
+                <TabBtn active={tab === "historial"} onClick={() => setTab("historial")} icon="list" label={`Historial (${client.historial.length})`} />
+                <TabBtn active={tab === "fotos"} onClick={() => setTab("fotos")} icon="camera" label="Fotografías" />
+              </div>
+
+              {tab === "info" && (
+                <div style={styles.infoPanel}>
+                  <p style={styles.infoLabel}>Observaciones generales</p>
+                  <p style={styles.infoText}>{client.observaciones || "Sin observaciones registradas."}</p>
+                </div>
+              )}
+
+              {tab === "historial" && (
+                <div>
+                  <div style={styles.sectionHeaderRow}>
+                    <p style={styles.sectionHint}>Servicios realizados de más reciente a más antiguo.</p>
+                    <button style={styles.primaryBtnSm} onClick={() => setShowNewEntry(true)}>
+                      <Icon name="plus" size={14} />
+                      Registrar servicio
+                    </button>
+                  </div>
+
+                  {sortedHistorial.length === 0 ? (
+                    <div style={styles.emptyState}>
+                      <Icon name="list" size={26} className="empty-icon" />
+                      <p style={styles.emptyTitle}>Sin servicios registrados</p>
+                    </div>
+                  ) : (
+                    <div style={styles.timeline}>
+                      {sortedHistorial.map((h) => (
+                        <HistorialCard
+                          key={h.id}
+                          entry={h}
+                          onDelete={() => {
+                            const next = { ...client, historial: client.historial.filter((x) => x.id !== h.id) };
+                            onUpdate(next);
+                            showToast("Servicio eliminado");
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tab === "fotos" && <PhotosPanel client={client} />}
+
+              {editingInfo && (
+                <EditClientModal
+                  client={client}
+                  onClose={() => setEditingInfo(false)}
+                  onSave={(updated) => {
+                    onUpdate(updated);
+                    setEditingInfo(false);
+                    showToast("Datos actualizados");
+                  }}
+                />
+              )}
+
+              {showNewEntry && (
+                <HistorialModal
+                  onClose={() => setShowNewEntry(false)}
+                  onSave={(entry) => {
+                    const next = { ...client, historial: [entry, ...client.historial] };
+                    onUpdate(next);
+                    setShowNewEntry(false);
+                    showToast("Servicio registrado");
+                  }}
+                />
+              )}
+
+              {confirmDelete && (
+                <Modal onClose={() => setConfirmDelete(false)} title="Eliminar ficha" narrow>
+                  <p style={styles.confirmText}>¿Eliminar la ficha de <strong>{client.nombre}</strong>? Esta acción no se puede deshacer.</p>
+                  <div style={styles.modalActions}>
+                    <button style={styles.secondaryBtn} onClick={() => setConfirmDelete(false)}>Cancelar</button>
+                    <button style={styles.dangerBtn} onClick={() => onDelete(client.id)}>Eliminar</button>
+                  </div>
+                </Modal>
+              )}
+            </div>
+          );
+        }
+
+        function TabBtn({ active, onClick, icon, label }) {
+          return (
+            <button onClick={onClick} style={{ ...styles.tabBtn, ...(active ? styles.tabBtnActive : {}) }}>
+              <Icon name={icon} size={14} />
+              {label}
+            </button>
+          );
+        }
+
+        function HistorialCard({ entry, onDelete }) {
+          const [confirmDel, setConfirmDel] = useState(false);
+          const details = [
+            ["Tipo", entry.tipoPestanas], ["Curvatura", entry.curvatura], ["Grosor", entry.grosor],
+            ["Longitud", entry.longitud], ["Técnica", entry.tecnica], ["Mapping", entry.mapping]
+          ].filter(([, v]) => v);
+
+          return (
+            <div style={styles.histCard}>
+              <div style={styles.histCardLine} />
+              <div style={styles.histCardDot}><Icon name={categoryIcon(entry.categoria)} size={13} /></div>
+              <div style={styles.histCardContent}>
+                <div style={styles.histCardTop}>
+                  <div>
+                    <div style={styles.histCardDate}>{formatDate(entry.fecha)}</div>
+                    <div style={styles.histCardService}>{entry.servicio || categoryLabel(entry.categoria)}</div>
+                  </div>
+                  <div style={styles.histCardRight}>
+                    {entry.precio && <div style={styles.priceTag}>${entry.precio}</div>}
+                    <button style={styles.iconBtnGhost} onClick={() => setConfirmDel(true)}><Icon name="trash" size={13} /></button>
+                  </div>
+                </div>
+                {details.length > 0 && (
+                  <div style={styles.detailGrid}>
+                    {details.map(([l, v]) => (
+                      <div key={l} style={styles.detailItem}>
+                        <span style={styles.detailLabel}>{l}</span>
+                        <span style={styles.detailValue}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {confirmDel && (
+                  <div style={styles.inlineConfirm}>
+                    <button style={styles.linkBtnDanger} onClick={onDelete}>Eliminar</button>
+                    <button style={styles.linkBtn} onClick={() => setConfirmDel(false)}>Cancelar</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        function HistorialModal({ onClose, onSave }) {
+          const [form, setForm] = useState(emptyHistorialEntry());
+          const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+          const isLash = form.categoria === "pestanas" || form.categoria === "lifting";
+
+          return (
+            <Modal onClose={onClose} title="Registrar servicio" wide>
+              <div style={styles.formGrid}>
+                <Field label="Fecha"><input type="date" style={styles.input} value={form.fecha} onChange={set("fecha")} /></Field>
+                <Field label="Categoría">
+                  <select style={styles.input} value={form.categoria} onChange={set("categoria")}>
+                    {SERVICE_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Servicio realizado" full><input style={styles.input} value={form.servicio} onChange={set("servicio")} placeholder="Ej. Volumen ruso" /></Field>
+                {isLash && (
+                  <>
+                    <Field label="Curvatura">
+                      <select style={styles.input} value={form.curvatura} onChange={set("curvatura")}>
+                        <option value="">Seleccionar…</option>
+                        {CURVATURAS.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Grosor">
+                      <select style={styles.input} value={form.grosor} onChange={set("grosor")}>
+                        <option value="">Seleccionar…</option>
+                        {GROSORES.map((g) => <option key={g} value={g}>{g} mm</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Técnica">
+                      <select style={styles.input} value={form.tecnica} onChange={set("tecnica")}>
+                        <option value="">Seleccionar…</option>
+                        {TECNICAS.map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Mapping"><input style={styles.input} value={form.mapping} onChange={set("mapping")} placeholder="Ej. Doll eye" /></Field>
+                  </>
+                )}
+                <Field label="Precio"><input type="number" style={styles.input} value={form.precio} onChange={set("precio")} /></Field>
+              </div>
+              <div style={styles.modalActions}>
+                <button style={styles.secondaryBtn} onClick={onClose}>Cancelar</button>
+                <button style={styles.primaryBtn} onClick={() => onSave(form)}>Guardar</button>
+              </div>
+            </Modal>
+          );
+        }
+
+        function EditClientModal({ client, onClose, onSave }) {
+          const [form, setForm] = useState({ ...client });
+          const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+          return (
+            <Modal onClose={onClose} title="Editar clienta">
+              <div style={styles.formGrid}>
+                <Field label="Nombre"><input style={styles.input} value={form.nombre} onChange={set("nombre")} /></Field>
+                <Field label="Teléfono"><input style={styles.input} value={form.telefono} onChange={set("telefono")} /></Field>
+              </div>
+              <div style={styles.modalActions}>
+                <button style={styles.secondaryBtn} onClick={onClose}>Cancelar</button>
+                <button style={styles.primaryBtn} onClick={() => onSave(form)}>Guardar</button>
+              </div>
+            </Modal>
+          );
+        }
+
+        function PhotosPanel() {
+          return (
+            <div>
+              <div style={styles.photoNotice}>
+                <Icon name="camera" size={15} />
+                <span>Panel de fotos estructuralmente listo. Conexión de archivos en la siguiente fase.</span>
+              </div>
+            </div>
+          );
+        }
+
+        function Agenda({ appointments, clients, onUpdate, onOpenClient, showToast }) {
+          const [mode, setMode] = useState("semana");
+          const [cursor, setCursor] = useState(new Date());
+          const [showNew, setShowNew] = useState(false);
+          const [editing, setEditing] = useState(null);
+
+          const days = useMemo(() => {
+            if (mode === "dia") return [new Date(cursor)];
+            const start = startOfWeek(cursor);
+            return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+          }, [mode, cursor]);
+
+          const appsByDay = useMemo(() => {
+            const map = {};
+            for (const d of days) map[dateKey(d)] = [];
+            for (const a of appointments) {
+              if (map[a.fecha]) map[a.fecha].push(a);
+            }
+            return map;
+          }, [appointments, days]);
+
+          return (
+            <div style={styles.page}>
+              <header style={styles.pageHeader}>
+                <div><p style={styles.eyebrow}>Tu semana de trabajo</p><h1 style={styles.h1}>Agenda</h1></div>
+                <button style={styles.primaryBtn} onClick={() => setShowNew(true)}><Icon name="plus" size={16} />Nueva cita</button>
+              </header>
+              <div style={styles.agendaToolbar}>
+                <span style={styles.agendaRangeLabel}>{rangeLabel(days, mode)}</span>
+                <div style={styles.modeToggle}>
+                  <button style={{ ...styles.modeBtn, ...(mode === "dia" ? styles.modeBtnActive : {}) }} onClick={() => setMode("dia")}>Día</button>
+                  <button style={{ ...styles.modeBtn, ...(mode === "semana" ? styles.modeBtnActive : {}) }} onClick={() => setMode("semana")}>Semana</button>
+                </div>
+              </div>
+              <div style={{ ...styles.agendaGrid, gridTemplateColumns: `repeat(${days.length}, 1fr)` }}>
+                {days.map((d) => {
+                  const key = dateKey(d);
+                  const dayApts = appsByDay[key] || [];
+                  return (
+                    <div key={key} style={styles.agendaCol}>
+                      <div style={styles.agendaColHeader}><span>{weekdayLabel(d)}</span><strong>{d.getDate()}</strong></div>
+                      <div style={styles.agendaColBody}>
+                        {dayApts.length === 0 && <p style={styles.agendaEmptyDay}>Sin citas</p>}
+                        {dayApts.map((a) => (
+                          <AppointmentCard key={a.id} apt={a} onEdit={() => setEditing(a)} onOpenClient={() => a.clienteId && onOpenClient(a.clienteId)} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {showNew && (
+                <AppointmentModal
+                  clients={clients}
+                  initial={{ ...emptyAppointment(), fecha: dateKey(cursor) }}
+                  onClose={() => setShowNew(false)}
+                  onSave={(apt) => { onUpdate([...appointments, apt]); setShowNew(false); showToast("Cita agendada"); }}
+                />
+              )}
+              {editing && (
+                <AppointmentModal
+                  clients={clients}
+                  initial={editing}
+                  editing
+                  onClose={() => setEditing(null)}
+                  onSave={(apt) => { onUpdate(appointments.map((a) => a.id === apt.id ? apt : a)); setEditing(null); showToast("Actualizada"); }}
+                />
+              )}
+            </div>
+          );
+        }
+
+        function AppointmentCard({ apt, onEdit, onOpenClient }) {
+          return (
+            <div style={{ ...styles.aptCard, background: "#FFF6ED", borderColor: "#E8C9A0" }}>
+              <span style={styles.aptTime}>{apt.hora}</span>
+              <button style={styles.aptClientName} onClick={onOpenClient}>{apt.clienteNombre || "Sin clienta"}</button>
+              <div style={styles.aptService}>{apt.servicio || categoryLabel(apt.categoria)}</div>
+              <button style={styles.primaryBtnSm} onClick={onEdit} style={{marginTop: 5, padding: "2px 6px", fontSize: 11}}>Editar</button>
+            </div>
+          );
+        }
+
+        function AppointmentModal({ clients, initial, editing, onClose, onSave }) {
+          const [form, setForm] = useState(initial);
+          const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+
+          return (
+            <Modal onClose={onClose} title={editing ? "Editar cita" : "Nueva cita"}>
+              <div style={styles.formGrid}>
+                <Field label="Clienta" full>
+                  <select style={styles.input} value={form.clienteId} onChange={(e) => {
+                    const c = clients.find((cl) => cl.id === e.target.value);
+                    setForm({ ...form, clienteId: e.target.value, clienteNombre: c ? c.nombre : form.clienteNombre });
+                  }}>
+                    <option value="">Seleccionar clienta…</option>
+                    {clients.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                  </select>
+                </Field>
+                <Field label="Fecha"><input type="date" style={styles.input} value={form.fecha} onChange={set("fecha")} /></Field>
+                <Field label="Hora"><input type="time" style={styles.input} value={form.hora} onChange={set("hora")} /></Field>
+                <Field label="Servicio" full><input style={styles.input} value={form.servicio} onChange={set("servicio")} /></Field>
+              </div>
+              <div style={styles.modalActions}>
+                <button style={styles.secondaryBtn} onClick={onClose}>Cancelar</button>
+                <button style={styles.primaryBtn} onClick={() => onSave(form)}>Confirmar</button>
+              </div>
+            </Modal>
+          );
+        }
+
+        /* ============================================================
+           COMPONENTES BASE GENERALES
+           ============================================================ */
+        function Modal({ children, onClose, title, wide, narrow }) {
+          return (
+            <div style={styles.modalOverlay} onClick={onClose}>
+              <div style={{ ...styles.modalCard, ...(wide ? { maxWidth: 640 } : {}), ...(narrow ? { maxWidth: 380 } : {}) }} onClick={(e) => e.stopPropagation()}>
+                <div style={styles.modalHeader}><h2 style={styles.modalTitle}>{title}</h2><button style={styles.modalClose} onClick={onClose}><Icon name="x" size={16} /></button></div>
+                <div style={styles.modalBody}>{children}</div>
+              </div>
+            </div>
+          );
+        }
+
+        function Field({ label, children, full }) {
+          return <div style={{ ...styles.field, ...(full ? { gridColumn: "1 / -1" } : {}) }}><label style={styles.fieldLabel}>{label}</label>{children}</div>;
+        }
+
+        /* ============================================================
+           HELPERS METRICOS Y DE TIEMPO
+           ============================================================ */
+        function dateKey(d) { return d.toISOString().slice(0, 10); }
+        function startOfWeek(d) { const date = new Date(d); const day = date.getDay(); date.setDate(date.getDate() - day); return date; }
+        function addDays(d, n) { const date = new Date(d); date.setDate(date.getDate() + n); return date; }
+        function weekdayLabel(d) { return d.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", ""); }
+        function rangeLabel(days, mode) { return mode === "dia" ? days[0].toLocaleDateString("es-ES", { day: "numeric", month: "long" }) : `${days[0].getDate()} - ${days[6].getDate()} de ${days[6].toLocaleDateString("es-ES", { month: "short" })}`; }
+        function formatDate(iso) { if (!iso) return ""; const d = new Date(iso + (iso.length === 10 ? "T00:00:00" : "")); return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }); }
+
+        /* ============================================================
+           OBJETO CENTRAL DE ESTILOS INLINE
+           ============================================================ */
+        const COLORS = { bg: "#FAF6F2", bgAlt: "#F3ECE4", card: "#FFFFFF", ink: "#2B2420", inkSoft: "#6B5849", terracotta: "#B8654F", terracottaDark: "#9C5040", gold: "#D4A574", border: "#E7DDD2", danger: "#A24B4B" };
+        const GLOBAL_CSS = `* { box-sizing: border-box; } body { margin: 0; } @media (max-width: 760px) { .studio-sidebar { display: none !important; } }`;
+
+        const styles = {
+          app: { display: "flex", minHeight: "100vh", background: COLORS.bg, fontFamily: "sans-serif", color: COLORS.ink },
+          loadingScreen: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", width: "100%", background: COLORS.bg },
+          loadingMark: { fontSize: 28, color: COLORS.terracotta, marginBottom: 10 },
+          loadingText: { color: COLORS.inkSoft, fontSize: 14 },
+          sidebar: { width: 220, flexShrink: 0, background: COLORS.card, borderRight: `1px solid ${COLORS.border}`, padding: "28px 18px", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh" },
+          brand: { display: "flex", alignItems: "center", gap: 10, marginBottom: 36, paddingLeft: 4 },
+          brandMark: { fontSize: 20, color: COLORS.terracotta },
+          brandTitle: { fontSize: 17, fontWeight: 600 },
+          brandSub: { fontSize: 11, color: COLORS.inkSoft },
+          nav: { display: "flex", flexDirection: "column", gap: 4 },
+          navBtn: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "none", background: "transparent", color: COLORS.inkSoft, fontSize: 14, cursor: "pointer", textAlign: "left" },
+          navBtnActive: { background: COLORS.bgAlt, color: COLORS.terracottaDark, fontWeight: 600 },
+          sidebarFoot: { marginTop: "auto", paddingTop: 20, borderTop: `1px solid ${COLORS.border}` },
+          foldTabs: { display: "flex", gap: 5, marginBottom: 8 },
+          foldTab: { width: 24, height: 24, borderRadius: 6, background: COLORS.bgAlt, color: COLORS.terracotta, display: "flex", alignItems: "center", justifyContent: "center" },
+          foldNote: { fontSize: 10.5, color: "#A4937F", margin: 0 },
+          main: { flex: 1, minWidth: 0, padding: "36px 40px 60px", maxWidth: 1100, margin: "0 auto", width: "100%" },
+          page: { display: "flex", flexDirection: "column", gap: 22 },
+          pageHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 14 },
+          eyebrow: { fontSize: 11.5, textTransform: "uppercase", color: COLORS.gold, margin: "0 0 4px", fontWeight: 600 },
+          h1: { fontSize: 30, fontWeight: 600, margin: 0 },
+          primaryBtn: { display: "flex", alignItems: "center", gap: 7, padding: "11px 18px", borderRadius: 10, border: "none", background: COLORS.terracotta, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" },
+          primaryBtnSm: { display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "none", background: COLORS.terracotta, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" },
+          secondaryBtn: { padding: "11px 18px", borderRadius: 10, border: `1px solid ${COLORS.border}`, background: "transparent", color: COLORS.ink, fontSize: 14, fontWeight: 600, cursor: "pointer" },
+          dangerBtn: { padding: "11px 18px", borderRadius: 10, border: "none", background: COLORS.danger, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" },
+          searchBar: { display: "flex", alignItems: "center", gap: 10, background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: "12px 16px" },
+          searchInput: { flex: 1, border: "none", outline: "none", fontSize: 14.5, background: "transparent", color: COLORS.ink },
+          emptyState: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "48px 20px", background: COLORS.card, border: `1px dashed ${COLORS.border}`, borderRadius: 14, gap: 6 },
+          emptyTitle: { fontSize: 15, fontWeight: 600 },
+          emptyText: { fontSize: 13, color: COLORS.inkSoft, margin: 0 },
+          clientGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 14 },
+          clientCard: { display: "flex", gap: 14, textAlign: "left", background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: 16, cursor: "pointer", fontFamily: "inherit" },
+          clientAvatar: { width: 46, height: 46, borderRadius: "50%", flexShrink: 0, background: `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.terracotta})`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 15 },
+          clientCardBody: { display: "flex", flexDirection: "column", gap: 4, minWidth: 0 },
+          clientCardName: { fontWeight: 700, fontSize: 15.5 },
+          clientCardMeta: { display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: COLORS.inkSoft },
+          clientCardLast: { fontSize: 11.5, color: "#A4937F", marginTop: 2 },
+          clientCardLastEmpty: { fontSize: 11.5, color: "#C9B8A8", fontStyle: "italic", marginTop: 2 },
+          allergyPill: { display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, fontSize: 10.5, fontWeight: 700, color: COLORS.danger, background: "#FBEFEF", padding: "3px 8px", borderRadius: 20 },
+          backLink: { display: "flex", alignItems: "center", gap: 6, border: "none", background: "transparent", color: COLORS.inkSoft, fontSize: 13, fontWeight: 600, cursor: "pointer" },
+          fileHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 },
+          fileHeaderLeft: { display: "flex", gap: 16, alignItems: "center" },
+          fileAvatar: { width: 58, height: 58, borderRadius: "50%", background: `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.terracotta})`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 19 },
+          fileMetaRow: { display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: COLORS.inkSoft },
+          iconBtn: { width: 36, height: 36, borderRadius: 10, border: `1px solid ${COLORS.border}`, background: COLORS.card, color: COLORS.inkSoft, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
+          iconBtnDanger: { width: 36, height: 36, borderRadius: 10, border: `1px solid #EFD4D4`, background: "#FBEFEF", color: COLORS.danger, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
+          allergyBanner: { display: "flex", alignItems: "center", gap: 10, background: "#FBEFEF", border: "1px solid #EFD4D4", color: "#8C3F3F", padding: "12px 16px", borderRadius: 12, fontSize: 13.5 },
+          tabs: { display: "flex", gap: 6, borderBottom: `1px solid ${COLORS.border}` },
+          tabBtn: { display: "flex", alignItems: "center", gap: 7, padding: "10px 6px", border: "none", background: "transparent", color: COLORS.inkSoft, fontSize: 13.5, fontWeight: 600, cursor: "pointer" },
+          tabBtnActive: { color: COLORS.terracottaDark, borderBottom: `2px solid ${COLORS.terracotta}` },
+          infoPanel: { background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: 22 },
+          infoLabel: { fontSize: 11.5, textTransform: "uppercase", color: COLORS.gold, fontWeight: 700, margin: "0 0 8px" },
+          infoText: { fontSize: 14.5, lineHeight: 1.6, margin: 0 },
+          sectionHeaderRow: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 },
+          sectionHint: { fontSize: 13, color: COLORS.inkSoft, margin: 0 },
+          timeline: { display: "flex", flexDirection: "column", gap: 4 },
+          histCard: { display: "flex", gap: 14, paddingBottom: 22 },
+          histCardLine: { position: "absolute", left: 13, top: 28, bottom: 0, width: 1, background: COLORS.border },
+          histCardDot: { width: 28, height: 28, borderRadius: "50%", background: COLORS.bgAlt, color: COLORS.terracottaDark, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 },
+          histCardContent: { flex: 1, background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: 16 },
+          histCardTop: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" },
+          histCardDate: { fontSize: 11.5, color: COLORS.inkSoft, fontWeight: 600 },
+          histCardService: { fontSize: 16.5, fontWeight: 600, marginTop: 2 },
+          histCardRight: { display: "flex", alignItems: "center", gap: 8 },
+          priceTag: { fontSize: 13, fontWeight: 700, color: COLORS.terracottaDark, background: COLORS.bgAlt, padding: "3px 10px", borderRadius: 20 },
+          detailGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10, marginTop: 14 },
+          detailItem: { display: "flex", flexDirection: "column" },
+          detailLabel: { fontSize: 10.5, color: "#A4937F" },
+          detailValue: { fontSize: 13.5, color: COLORS.ink, fontWeight: 500 },
+          photoNotice: { display: "flex", gap: 10, background: COLORS.bgAlt, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: "12px 16px", fontSize: 13, color: COLORS.inkSoft },
+          agendaToolbar: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 },
+          agendaRangeLabel: { fontSize: 14.5, fontWeight: 600 },
+          modeToggle: { display: "flex", background: COLORS.bgAlt, borderRadius: 10, padding: 3 },
+          modeBtn: { padding: "7px 14px", borderRadius: 8, border: "none", background: "transparent", color: COLORS.inkSoft, fontSize: 13, fontWeight: 600, cursor: "pointer" },
+          modeBtnActive: { background: COLORS.card, color: COLORS.terracottaDark },
+          agendaGrid: { display: "grid", gap: 10 },
+          agendaCol: { display: "flex", flexDirection: "column", gap: 8 },
+          agendaColHeader: { display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", borderRadius: 10, background: COLORS.card, border: `1px solid ${COLORS.border}` },
+          agendaColBody: { display: "flex", flexDirection: "column", gap: 8 },
+          agendaEmptyDay: { fontSize: 11.5, color: "#C9B8A8", textAlign: "center" },
+          aptCard: { border: "1px solid", borderRadius: 11, padding: "10px 11px", display: "flex", flexDirection: "column" },
+          aptTime: { fontSize: 11.5, fontWeight: 700 },
+          aptClientName: { border: "none", background: "transparent", padding: 0, textAlign: "left", fontWeight: 600, fontSize: 13.5, color: COLORS.ink, cursor: "pointer" },
+          aptService: { fontSize: 11.5, color: COLORS.inkSoft },
+          modalOverlay: { position: "fixed", inset: 0, background: "rgba(43,36,32,0.45)", display: "flex", alignItems: "center", justifyOrigin: "center", padding: 20, zIndex: 100 },
+          modalCard: { background: COLORS.bg, borderRadius: 18, width: "100%", maxWidth: 480, maxHeight: "88vh", display: "flex", flexDirection: "column" },
+          modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: `1px solid ${COLORS.border}` },
+          modalTitle: { fontSize: 19, fontWeight: 600 },
+          modalClose: { border: "none", background: COLORS.bgAlt, color: COLORS.inkSoft, cursor: "pointer" },
+          modalBody: { padding: 24, overflowY: "auto" },
+          modalActions: { display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px 22px" },
+          formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 },
+          field: { display: "flex", flexDirection: "column", gap: 6 },
+          fieldLabel: { fontSize: 12, fontWeight: 600, color: COLORS.inkSoft },
+          input: { padding: "10px 12px", borderRadius: 9, border: `1px solid ${COLORS.border}`, fontSize: 13.5, width: "100%" },
+          textarea: { padding: "10px 12px", borderRadius: 9, border: `1px solid ${COLORS.border}`, fontSize: 13.5, width: "100%", minHeight: 70 },
+          toast: { position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: COLORS.ink, color: "#fff", padding: "11px 22px", borderRadius: 30, fontSize: 13.5, fontWeight: 600, zIndex: 200 }
+        };
+        styles.modalOverlay.justifyContent = "center"; // Parche rápido de alineación
+
+        /* ============================================================
+           PUNTO DE MONTAJE DIRECTO EN EL NAVEGADOR
+           ============================================================ */
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+    <style></style>
+</body>
+</html>
+
