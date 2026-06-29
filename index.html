@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estudio Angela's</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&disp<!DOCTYPE html>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estudio Lash & Brow - Sistema</title>
@@ -1783,6 +1791,2158 @@
     outline-offset: 2px;
   }
 </style>
+</body>
+</html>
+
+lay=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose:       #C9907A;
+    --rose-deep:  #9B4F6A;
+    --rose-light: #E8B4A0;
+    --gold:       #D4AF7A;
+    --gold-light: #EDD9A3;
+    --gold-deep:  #B8923A;
+    --pearl:      #FDF8F5;
+    --blush:      #F7ECEE;
+    --blush-mid:  #EDD9DE;
+    --charcoal:   #2A1F2D;
+    --ink:        #3D2B3D;
+    --ink-soft:   #7A5C6E;
+    --ink-muted:  #A8879A;
+    --white:      #FFFFFF;
+    --border:     #EDD9DE;
+    --danger:     #9B3A4F;
+    --shadow-sm:  0 2px 12px rgba(155,79,106,.10);
+    --shadow-md:  0 8px 32px rgba(155,79,106,.14);
+    --shadow-lg:  0 20px 60px rgba(155,79,106,.18);
+    --radius-sm:  8px;
+    --radius-md:  14px;
+    --radius-lg:  20px;
+    --radius-xl:  28px;
+  }
+
+  html { font-size: 15px; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--pearl);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--blush-mid); border-radius: 99px; }
+
+  /* ── LAYOUT ── */
+  #root { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, var(--rose-deep) 0%, #6B2D4A 100%);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(212,175,122,.22) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 90%, rgba(201,144,122,.18) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .sidebar-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 32px 20px;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .brand-monogram {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+    background-size: 200% 200%;
+    animation: shimmer 3s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--rose-deep);
+    margin-bottom: 14px;
+    box-shadow: 0 4px 20px rgba(212,175,122,.4);
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: .5px;
+    line-height: 1.2;
+  }
+
+  .brand-tagline {
+    font-size: 10.5px;
+    color: rgba(255,255,255,.55);
+    margin-top: 4px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+
+  .brand-divider {
+    width: 48px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 14px auto 0;
+    animation: glow-line 3s ease-in-out infinite;
+  }
+
+  @keyframes glow-line {
+    0%, 100% { opacity: .5; }
+    50%       { opacity: 1; }
+  }
+
+  /* ── NAV ── */
+  .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s ease;
+    text-align: left;
+  }
+
+  .nav-btn:hover {
+    background: rgba(255,255,255,.08);
+    color: rgba(255,255,255,.9);
+  }
+
+  .nav-btn.active {
+    background: rgba(255,255,255,.14);
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  .nav-btn.active .nav-icon-wrap {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--rose-deep);
+  }
+
+  .nav-icon-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.08);
+    flex-shrink: 0;
+    transition: all .2s ease;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    text-align: center;
+  }
+
+  .sidebar-footer-gems {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .gem { font-size: 14px; opacity: .5; animation: pulse-gem 2.5s ease-in-out infinite; }
+  .gem:nth-child(2) { animation-delay: .4s; }
+  .gem:nth-child(3) { animation-delay: .8s; }
+
+  @keyframes pulse-gem {
+    0%, 100% { opacity: .4; transform: scale(1); }
+    50%       { opacity: .9; transform: scale(1.1); }
+  }
+
+  .sidebar-footer-text { font-size: 10px; color: rgba(255,255,255,.3); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── MAIN ── */
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 40px 44px 80px;
+    max-width: 1120px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── PAGE ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .animate-in {
+    animation: fadeUp .4s cubic-bezier(.22,.68,0,1.2) forwards;
+  }
+
+  .stagger-1 { animation-delay: .05s; opacity: 0; }
+  .stagger-2 { animation-delay: .12s; opacity: 0; }
+  .stagger-3 { animation-delay: .19s; opacity: 0; }
+  .stagger-4 { animation-delay: .26s; opacity: 0; }
+  .stagger-5 { animation-delay: .33s; opacity: 0; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .page-eyebrow {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 6px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--charcoal);
+    line-height: 1.1;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: linear-gradient(135deg, var(--rose-deep) 0%, var(--rose) 100%);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+    box-shadow: 0 4px 16px rgba(155,79,106,.30);
+    white-space: nowrap;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(155,79,106,.38);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-primary-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: linear-gradient(135deg, var(--rose-deep), var(--rose));
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+    box-shadow: 0 3px 10px rgba(155,79,106,.25);
+    white-space: nowrap;
+  }
+
+  .btn-primary-sm:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(155,79,106,.32); }
+
+  .btn-ghost {
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+
+  .btn-ghost:hover { border-color: var(--rose-light); color: var(--rose-deep); background: var(--blush); }
+
+  .btn-danger {
+    padding: 12px 22px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--danger);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+
+  .btn-danger:hover { background: #7A2E3F; transform: translateY(-1px); }
+
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .2s ease;
+    flex-shrink: 0;
+  }
+
+  .btn-icon:hover { border-color: var(--rose-light); color: var(--rose-deep); background: var(--blush); }
+
+  .btn-icon-danger {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid #F2D0D8;
+    background: #FDF0F3;
+    color: var(--danger);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .2s ease;
+    flex-shrink: 0;
+  }
+
+  .btn-icon-danger:hover { background: #F8DDE3; }
+
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 13px 18px;
+    margin-bottom: 24px;
+    transition: border-color .2s;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .search-wrap:focus-within { border-color: var(--rose-light); box-shadow: 0 0 0 3px rgba(201,144,122,.12); }
+
+  .search-input {
+    flex: 1; border: none; outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px; background: transparent; color: var(--ink);
+  }
+
+  .search-input::placeholder { color: var(--ink-muted); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .2s, transform .2s, border-color .2s;
+  }
+
+  .card:hover { box-shadow: var(--shadow-md); }
+
+  /* ── CLIENT GRID ── */
+  .client-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+
+  .client-card-btn {
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all .22s ease;
+    animation: fadeUp .35s ease both;
+  }
+
+  .client-card-btn:hover {
+    border-color: var(--rose-light);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .client-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--rose) 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 3px 12px rgba(155,79,106,.25);
+  }
+
+  .client-card-name { font-size: 15.5px; font-weight: 600; color: var(--charcoal); margin-bottom: 4px; }
+  .client-card-meta { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
+  .client-card-last { font-size: 11.5px; color: var(--ink-muted); margin-top: 6px; }
+
+  .allergy-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--danger);
+    background: #FDF0F3;
+    border: 1px solid #F2D0D8;
+    padding: 3px 9px;
+    border-radius: 99px;
+    letter-spacing: .3px;
+  }
+
+  /* ── GOLD DIVIDER ── */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--gold-light) 30%, var(--gold) 50%, var(--gold-light) 70%, transparent 100%);
+    margin: 6px 0;
+  }
+
+  /* ── TABS ── */
+  .tabs-bar {
+    display: flex;
+    gap: 2px;
+    background: var(--blush);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabs-bar::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .18s ease;
+  }
+
+  .tab-btn:hover { color: var(--rose-deep); }
+
+  .tab-btn.active {
+    background: var(--white);
+    color: var(--rose-deep);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(155,79,106,.12);
+  }
+
+  /* ── PANEL CARD ── */
+  .panel {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .panel-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 10px;
+  }
+
+  /* ── HISTORY TIMELINE ── */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+
+  .hist-card {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 24px;
+    position: relative;
+    animation: fadeUp .3s ease both;
+  }
+
+  .hist-line {
+    position: absolute;
+    left: 16px;
+    top: 34px;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, var(--border), transparent);
+  }
+
+  .hist-dot {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blush), var(--blush-mid));
+    border: 2px solid var(--border);
+    color: var(--rose-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  .hist-content {
+    flex: 1;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .2s;
+  }
+
+  .hist-content:hover { box-shadow: var(--shadow-md); }
+
+  .hist-date { font-size: 11px; font-weight: 600; color: var(--ink-muted); letter-spacing: .5px; }
+  .hist-service { font-size: 16px; font-weight: 600; font-family: 'Playfair Display', serif; color: var(--charcoal); margin-top: 2px; }
+
+  .price-badge {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--rose-deep);
+    background: linear-gradient(135deg, var(--blush) 0%, #F5DDE2 100%);
+    border: 1px solid var(--blush-mid);
+    padding: 4px 12px;
+    border-radius: 99px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .detail-item { display: flex; flex-direction: column; gap: 2px; }
+  .detail-label { font-size: 10px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .8px; }
+  .detail-value { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+
+  .obs-box {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--blush);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    border-left: 3px solid var(--rose-light);
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(42,31,45,.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 200;
+    animation: fadeIn .18s ease;
+  }
+
+  .modal-card {
+    background: var(--pearl);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: scaleIn .22s cubic-bezier(.22,.68,0,1.2);
+    border: 1.5px solid var(--border);
+  }
+
+  .modal-card.wide { max-width: 660px; }
+  .modal-card.narrow { max-width: 400px; }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(.94) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 28px;
+    border-bottom: 1.5px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--charcoal);
+  }
+
+  .modal-close {
+    width: 34px; height: 34px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .18s;
+  }
+
+  .modal-close:hover { border-color: var(--rose-light); color: var(--rose-deep); background: var(--blush); }
+
+  .modal-body { padding: 24px 28px; overflow-y: auto; flex: 1; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 28px 24px; flex-shrink: 0; border-top: 1.5px solid var(--border); }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.single { grid-template-columns: 1fr; }
+  .field-full { grid-column: 1 / -1; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); letter-spacing: .3px; }
+
+  .input-field {
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--white);
+    outline: none;
+    transition: border-color .18s, box-shadow .18s;
+    width: 100%;
+  }
+
+  .input-field:focus {
+    border-color: var(--rose-light);
+    box-shadow: 0 0 0 3px rgba(201,144,122,.12);
+  }
+
+  .input-field::placeholder { color: var(--ink-muted); }
+
+  textarea.input-field { min-height: 76px; resize: vertical; }
+
+  select.input-field { cursor: pointer; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 56px 24px;
+    background: var(--white);
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-xl);
+    gap: 8px;
+    color: var(--ink-muted);
+  }
+
+  .empty-icon { font-size: 32px; margin-bottom: 4px; opacity: .6; }
+  .empty-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--ink); margin: 0; }
+  .empty-text  { font-size: 13.5px; color: var(--ink-muted); max-width: 280px; }
+
+  /* ── AGENDA ── */
+  .agenda-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .nav-date-controls { display: flex; align-items: center; gap: 8px; }
+
+  .btn-nav-arrow {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .18s;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-nav-arrow:hover { border-color: var(--rose-light); color: var(--rose-deep); background: var(--blush); }
+
+  .date-range-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--charcoal);
+    min-width: 140px;
+    text-align: center;
+  }
+
+  .btn-today {
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--ink-soft);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-today:hover { border-color: var(--rose-light); color: var(--rose-deep); background: var(--blush); }
+
+  .mode-toggle {
+    display: flex;
+    background: var(--blush);
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+
+  .mode-btn {
+    padding: 7px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .18s;
+  }
+
+  .mode-btn.active {
+    background: var(--white);
+    color: var(--rose-deep);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(155,79,106,.12);
+  }
+
+  .agenda-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  .agenda-grid {
+    display: grid;
+    gap: 10px;
+    min-width: 580px;
+  }
+
+  .agenda-col-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 4px;
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .agenda-col-header.today {
+    background: var(--blush);
+    border-color: var(--rose);
+  }
+
+  .agenda-col-header.today .col-day { color: var(--rose-deep); font-weight: 700; }
+  .agenda-col-header.today .col-num { color: var(--rose-deep); }
+
+  .col-day { font-size: 10.5px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .col-num { font-size: 18px; font-weight: 700; color: var(--charcoal); font-family: 'Playfair Display', serif; }
+
+  .apt-card {
+    border-radius: var(--radius-md);
+    padding: 12px 13px;
+    border: 1.5px solid;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: box-shadow .2s;
+    animation: fadeUp .3s ease both;
+  }
+
+  .apt-card:hover { box-shadow: var(--shadow-md); }
+
+  .apt-card.normal { background: #FFF8FB; border-color: var(--blush-mid); }
+  .apt-card.cancelada { background: #F9F5F5; border-color: #E8D0D0; opacity: .75; }
+
+  .apt-time { font-size: 11px; font-weight: 700; color: var(--rose-deep); }
+  .apt-client { font-weight: 600; font-size: 13px; color: var(--charcoal); background: none; border: none; font-family: inherit; cursor: pointer; padding: 0; text-align: left; }
+  .apt-client:hover { color: var(--rose-deep); }
+  .apt-service { font-size: 11.5px; color: var(--ink-muted); }
+
+  /* ── CLIENT FILE HEADER ── */
+  .file-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .file-header-left { display: flex; gap: 18px; align-items: center; }
+
+  .file-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--rose) 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(155,79,106,.28);
+    flex-shrink: 0;
+  }
+
+  .allergy-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #FDF0F3;
+    border: 1.5px solid #F2D0D8;
+    color: #7A2E3F;
+    padding: 12px 18px;
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    margin-bottom: 8px;
+  }
+
+  /* ── PHOTO GRID ── */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+    gap: 12px;
+  }
+
+  .photo-thumb {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: var(--blush);
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+  }
+
+  .photo-thumb:hover { transform: scale(1.02); box-shadow: var(--shadow-md); }
+
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .photo-date {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(42,31,45,.65));
+    color: #fff;
+    font-size: 10px;
+    padding: 16px 8px 6px;
+    text-align: center;
+  }
+
+  .photo-del {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(155,58,79,.85);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .18s;
+    backdrop-filter: blur(4px);
+  }
+
+  .photo-thumb:hover .photo-del { opacity: 1; }
+
+  /* ── SIGNATURE CANVAS ── */
+  .canvas-wrap {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    position: relative;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--charcoal);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-size: 13.5px;
+    font-weight: 600;
+    z-index: 500;
+    animation: toastIn .25s cubic-bezier(.22,.68,0,1.2);
+    white-space: nowrap;
+    box-shadow: 0 8px 30px rgba(42,31,45,.3);
+    border: 1px solid rgba(255,255,255,.1);
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--white);
+    border-top: 1.5px solid var(--border);
+    z-index: 100;
+    padding: 6px 0 env(safe-area-inset-bottom, 6px);
+  }
+
+  .bottom-nav-inner { display: flex; justify-content: space-around; }
+
+  .bottom-nav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    padding: 8px 24px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    font-family: 'Inter', sans-serif;
+    transition: color .18s;
+  }
+
+  .bottom-nav-btn.active { color: var(--rose-deep); }
+
+  /* ── CONFIRM INLINE ── */
+  .inline-confirm {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+
+  .link-danger { background: none; border: none; color: var(--danger); font-weight: 700; font-size: 13px; cursor: pointer; padding: 0; font-family: inherit; }
+  .link-soft   { background: none; border: none; color: var(--ink-muted); font-weight: 600; font-size: 13px; cursor: pointer; padding: 0; font-family: inherit; }
+
+  .section-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 18px;
+    transition: color .18s;
+  }
+
+  .back-btn:hover { color: var(--rose-deep); }
+
+  /* ── CHECKBOX ── */
+  input[type="checkbox"] { accent-color: var(--rose-deep); width: 15px; height: 15px; }
+
+  /* ── FOCUS ── */
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--rose-light);
+    outline-offset: 2px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { display: none !important; }
+    .bottom-nav { display: block; }
+    .main-content { padding: 20px 16px 90px !important; }
+    .client-grid { grid-template-columns: 1fr !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+    .modal-card {
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+      max-height: 92vh !important;
+      max-width: 100% !important;
+      margin-top: auto;
+    }
+    .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+    .page-title { font-size: 28px; }
+    .agenda-grid { min-width: 540px; }
+  }
+
+  @media (min-width: 769px) {
+    .form-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+</style>
+
+<script type="text/babel">
+  const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+  /* ── STORAGE ── */
+  const SK = { CLIENTS: "angela:clients", APTS: "angela:appointments", PHOTOS: "angela:photos:" };
+
+  function sGet(key, fb) {
+    try { const r = localStorage.getItem(key); return r === null ? fb : JSON.parse(r); }
+    catch { return fb; }
+  }
+
+  function sSet(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+    catch(e) { return e.name === "QuotaExceededError" ? "quota" : false; }
+  }
+
+  function savePhotos(cid, fotos) { return sSet(SK.PHOTOS + cid, fotos); }
+  function loadPhotos(cid)       { return sGet(SK.PHOTOS + cid, []); }
+
+  /* ── CONSTANTS ── */
+  const SERVICE_CATS = [
+    { id:"pestanas",   label:"Extensión de pestañas", icon:"👁" },
+    { id:"lifting",    label:"Lifting de pestañas",   icon:"✨" },
+    { id:"laminado",   label:"Laminado de cejas",     icon:"🌿" },
+    { id:"depilacion", label:"Depilación",             icon:"🌸" },
+    { id:"unas",       label:"Uñas",                  icon:"💅" },
+    { id:"otro",       label:"Otro servicio",          icon:"⭐" },
+  ];
+
+  const CURVATURAS = ["B","C","CC","D","DD","L","L+","M"];
+  const GROSORES   = ["0.03","0.05","0.07","0.10","0.12","0.15","0.18","0.20","0.25"];
+  const TECNICAS   = ["Clásicas","2D","3D","Híbrida","Rimel","Rimel Teach","Griegas","Hawaianas","Tecnológico 4D","Tecnológico 5D","Tecnológico 6D","Russian Teach","Wispy","Volumen Ruso","FOXY","Mega Volumen"];
+
+  const catLabel = id => SERVICE_CATS.find(c => c.id === id)?.label || "Servicio";
+  const catIcon  = id => SERVICE_CATS.find(c => c.id === id)?.icon  || "⭐";
+
+  function uid(p="id") { return `${p}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`; }
+
+  function localDate() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  function emptyClient() {
+    return { id:uid("cli"), nombre:"", telefono:"", fechaNacimiento:"", observaciones:"", alergias:"", creadoEn:new Date().toISOString(), historial:[], fotos:[] };
+  }
+
+  function emptyEntry() {
+    return { id:uid("h"), fecha:localDate(), categoria:"pestanas", servicio:"", tipoPestanas:"", curvatura:"", grosor:"", longitud:"", tecnica:"", mapping:"", productos:"", tiempoMinutos:"", precio:"", observaciones:"", retoque:"", retiro:"" };
+  }
+
+  function emptyApt() {
+    return { id:uid("apt"), clienteId:"", clienteNombre:"", fecha:localDate(), hora:"10:00", categoria:"pestanas", servicio:"", estado:"pendiente", notas:"" };
+  }
+
+  function formatDate(iso) {
+    if (!iso) return "";
+    const s = iso.length === 10 ? iso + "T12:00:00" : iso;
+    const d = new Date(s);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString("es-ES", { day:"numeric", month:"short" });
+  }
+
+  function dateKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  function startOfWeek(d) {
+    const x = new Date(d); x.setDate(x.getDate() - x.getDay()); x.setHours(0,0,0,0); return x;
+  }
+
+  function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+
+  function weekdayShort(d) { return d.toLocaleDateString("es-ES", {weekday:"short"}).replace(".",""); }
+
+  function rangeLabel(days, mode) {
+    if (mode === "dia") return days[0].toLocaleDateString("es-ES", {weekday:"long", day:"numeric", month:"long"});
+    return `${days[0].getDate()} – ${days[6].getDate()} ${days[6].toLocaleDateString("es-ES",{month:"long"})}`;
+  }
+
+  /* ── SVG ICONS ── */
+  const Ico = ({ n, s=18 }) => {
+    const p = { width:s, height:s, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", strokeWidth:1.8, strokeLinecap:"round", strokeLinejoin:"round" };
+    switch(n) {
+      case "search":  return <svg {...p}><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.3" y2="15.3"/></svg>;
+      case "plus":    return <svg {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+      case "back":    return <svg {...p}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 6 5 12 11 18"/></svg>;
+      case "check":   return <svg {...p}><polyline points="20 6 9 17 4 12"/></svg>;
+      case "x":       return <svg {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+      case "edit":    return <svg {...p}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>;
+      case "trash":   return <svg {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/><path d="M9 6V4.5C9 3.7 9.7 3 10.5 3h3c.8 0 1.5.7 1.5 1.5V6"/></svg>;
+      case "phone":   return <svg {...p}><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L14 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>;
+      case "camera":  return <svg {...p}><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>;
+      case "image":   return <svg {...p}><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-5 5"/></svg>;
+      case "book":    return <svg {...p}><path d="M4 4.5C4 3.7 4.7 3 5.5 3H12v18H5.5c-.8 0-1.5-.7-1.5-1.5V4.5z"/><path d="M20 4.5c0-.8-.7-1.5-1.5-1.5H12v18h6.5c.8 0 1.5-.7 1.5-1.5V4.5z"/></svg>;
+      case "cal":     return <svg {...p}><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>;
+      case "list":    return <svg {...p}><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r=".8" fill="currentColor"/><circle cx="4.5" cy="12" r=".8" fill="currentColor"/><circle cx="4.5" cy="18" r=".8" fill="currentColor"/></svg>;
+      case "star":    return <svg {...p}><path d="M12 3l2.6 5.8 6.4.7-4.8 4.3 1.3 6.2L12 16.8 6.5 20l1.3-6.2-4.8-4.3 6.4-.7z"/></svg>;
+      case "alert":   return <svg {...p}><path d="M12 3 2 20h20L12 3z"/><line x1="12" y1="10" x2="12" y2="14.5"/><circle cx="12" cy="17.2" r=".4" fill="currentColor"/></svg>;
+      case "chL":     return <svg {...p}><polyline points="15 18 9 12 15 6"/></svg>;
+      case "chR":     return <svg {...p}><polyline points="9 18 15 12 9 6"/></svg>;
+      case "clock":   return <svg {...p}><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>;
+      default: return null;
+    }
+  };
+
+  /* ══════════════════════════════════════
+     APP
+  ══════════════════════════════════════ */
+  function App() {
+    const [view, setView]     = useState("clientes");
+    const [clients, setClients]   = useState([]);
+    const [apts, setApts]         = useState([]);
+    const [selId, setSelId]       = useState(null);
+    const [loading, setLoading]   = useState(true);
+    const [toast, setToast]       = useState(null);
+
+    useEffect(() => {
+      setClients(sGet(SK.CLIENTS, []));
+      setApts(sGet(SK.APTS, []));
+      setLoading(false);
+    }, []);
+
+    const showToast = useCallback(msg => {
+      setToast(msg);
+      setTimeout(() => setToast(null), 2600);
+    }, []);
+
+    const saveClients = useCallback(next => {
+      const clean = next.map(c => ({...c, fotos:[]}));
+      const r = sSet(SK.CLIENTS, clean);
+      if (r === "quota") showToast("⚠️ Espacio lleno. Elimina fotos antiguas.");
+      else if (!r) showToast("Error al guardar. Intenta de nuevo.");
+      setClients(next);
+    }, [showToast]);
+
+    const saveApts = useCallback(next => {
+      const r = sSet(SK.APTS, next);
+      if (r === "quota") showToast("⚠️ Espacio lleno.");
+      else if (!r) showToast("Error al guardar.");
+      setApts(next);
+    }, [showToast]);
+
+    const selClient = useMemo(() => clients.find(c => c.id === selId) || null, [clients, selId]);
+
+    const openClient = id => { setSelId(id); setView("ficha"); };
+
+    if (loading) return (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100vh",background:"var(--pearl)",gap:14}}>
+        <div style={{width:58,height:58,borderRadius:"50%",background:"linear-gradient(135deg,var(--gold),var(--rose))",animation:"shimmer 2s ease infinite",backgroundSize:"200%"}}></div>
+        <p style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"var(--ink-soft)"}}>Estudio Angela's</p>
+      </div>
+    );
+
+    return (
+      <>
+        {/* SIDEBAR */}
+        <aside className="sidebar">
+          <div className="sidebar-inner">
+            <div className="brand">
+              <div className="brand-monogram">A</div>
+              <div className="brand-name">Estudio Angela's</div>
+              <div className="brand-tagline">Belleza &amp; Elegancia</div>
+              <div className="brand-divider" />
+            </div>
+            <nav className="sidebar-nav">
+              {[
+                {id:"clientes",label:"Clientas",icon:"book"},
+                {id:"agenda",  label:"Agenda",  icon:"cal"},
+              ].map(item => (
+                <button
+                  key={item.id}
+                  className={`nav-btn${(view===item.id||(view==="ficha"&&item.id==="clientes"))?" active":""}`}
+                  onClick={() => { setSelId(null); setView(item.id); }}
+                >
+                  <span className="nav-icon-wrap"><Ico n={item.icon} s={16}/></span>
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <div className="sidebar-footer">
+              <div className="sidebar-footer-gems">
+                <span className="gem">🌸</span>
+                <span className="gem">✨</span>
+                <span className="gem">💎</span>
+              </div>
+              <p className="sidebar-footer-text">Estudio Angela's · 2025</p>
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN */}
+        <main className="main-content">
+          {view === "clientes" && (
+            <ClientList
+              clients={clients}
+              onOpen={openClient}
+              onCreate={nc => { const next=[nc,...clients]; saveClients(next); showToast("✨ Ficha creada"); openClient(nc.id); }}
+            />
+          )}
+          {view === "ficha" && selClient && (
+            <ClientFile
+              client={selClient}
+              onBack={() => setView("clientes")}
+              onUpdate={upd => {
+                const next = clients.map(c => c.id === upd.id ? upd : c);
+                saveClients(next);
+                if (upd.fotos?.length) { const r=savePhotos(upd.id,upd.fotos); if(r==="quota") showToast("⚠️ Sin espacio para fotos."); }
+              }}
+              onDelete={id => {
+                saveClients(clients.filter(c => c.id !== id));
+                saveApts(apts.filter(a => a.clienteId !== id));
+                setView("clientes");
+                showToast("Ficha eliminada");
+              }}
+              showToast={showToast}
+            />
+          )}
+          {view === "agenda" && (
+            <Agenda
+              apts={apts}
+              clients={clients}
+              onUpdate={saveApts}
+              onOpenClient={openClient}
+              showToast={showToast}
+            />
+          )}
+        </main>
+
+        {/* BOTTOM NAV MOBILE */}
+        <nav className="bottom-nav">
+          <div className="bottom-nav-inner">
+            {[
+              {id:"clientes",label:"Clientas",icon:"book"},
+              {id:"agenda",  label:"Agenda",  icon:"cal"},
+            ].map(it => (
+              <button
+                key={it.id}
+                className={`bottom-nav-btn${(view===it.id||(view==="ficha"&&it.id==="clientes"))?" active":""}`}
+                onClick={() => { setSelId(null); setView(it.id); }}
+              >
+                <Ico n={it.icon} s={22}/>
+                {it.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {toast && <div className="toast">{toast}</div>}
+      </>
+    );
+  }
+
+  /* ══════════════════════════════════════
+     CLIENT LIST
+  ══════════════════════════════════════ */
+  function ClientList({ clients, onOpen, onCreate }) {
+    const [query, setQuery]   = useState("");
+    const [showNew, setShowNew] = useState(false);
+
+    const filtered = useMemo(() => {
+      const q = query.trim().toLowerCase();
+      if (!q) return clients;
+      return clients.filter(c => c.nombre.toLowerCase().includes(q) || (c.telefono||"").includes(q));
+    }, [clients, query]);
+
+    return (
+      <div className="animate-in">
+        <div className="page-header">
+          <div>
+            <p className="page-eyebrow">Tu cartera de clientas</p>
+            <h1 className="page-title">Fichas</h1>
+          </div>
+          <button className="btn-primary" onClick={() => setShowNew(true)}>
+            <Ico n="plus" s={16}/> Nueva ficha
+          </button>
+        </div>
+
+        <div className="search-wrap">
+          <Ico n="search" s={17}/>
+          <input className="search-input" placeholder="Buscar clienta por nombre o teléfono…" value={query} onChange={e=>setQuery(e.target.value)} autoFocus />
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="empty-state animate-in stagger-2">
+            <div className="empty-icon">🌸</div>
+            <p className="empty-title">{clients.length===0 ? "Aún no hay fichas" : "Sin coincidencias"}</p>
+            <p className="empty-text">{clients.length===0 ? "Crea la primera ficha para comenzar." : "Intenta con otro nombre o teléfono."}</p>
+          </div>
+        ) : (
+          <div className="client-grid">
+            {filtered.map((c, i) => (
+              <ClientCard key={c.id} client={c} onOpen={()=>onOpen(c.id)} delay={i} />
+            ))}
+          </div>
+        )}
+
+        {showNew && <NewClientModal onClose={()=>setShowNew(false)} onSave={c=>{setShowNew(false);onCreate(c);}} />}
+      </div>
+    );
+  }
+
+  function ClientCard({ client, onOpen, delay }) {
+    const lastVisit = useMemo(() => {
+      if (!client.historial.length) return null;
+      return [...client.historial].sort((a,b) => b.fecha.localeCompare(a.fecha))[0];
+    }, [client.historial]);
+
+    const initials = client.nombre.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]?.toUpperCase()).join("");
+
+    return (
+      <button
+        className="client-card-btn"
+        onClick={onOpen}
+        style={{animationDelay: `${delay * 0.07}s`}}
+      >
+        <div className="client-avatar">{initials||"?"}</div>
+        <div style={{display:"flex",flexDirection:"column",gap:4,minWidth:0}}>
+          <div className="client-card-name">{client.nombre||"Sin nombre"}</div>
+          <div className="client-card-meta">
+            <Ico n="phone" s={12}/> {client.telefono||"Sin teléfono"}
+          </div>
+          {lastVisit
+            ? <div className="client-card-last">Última visita · {formatDate(lastVisit.fecha)} · {catLabel(lastVisit.categoria)}</div>
+            : <div className="client-card-last" style={{fontStyle:"italic"}}>Sin visitas registradas</div>
+          }
+          {client.alergias && (
+            <div className="allergy-pill"><Ico n="alert" s={11}/> Alergias</div>
+          )}
+        </div>
+      </button>
+    );
+  }
+
+  /* ── MODALS NEW/EDIT CLIENT ── */
+  function NewClientModal({ onClose, onSave }) {
+    const [form, setForm] = useState(emptyClient());
+    const set = k => e => setForm({...form,[k]:e.target.value});
+    return (
+      <Modal onClose={onClose} title="Nueva ficha de clienta">
+        <div className="form-grid">
+          <Field label="Nombre completo *" id="nc-n"><input id="nc-n" className="input-field" value={form.nombre} onChange={set("nombre")} autoFocus placeholder="Ej. María González"/></Field>
+          <Field label="Teléfono" id="nc-t"><input id="nc-t" className="input-field" value={form.telefono} onChange={set("telefono")} placeholder="Ej. 0412-1234567"/></Field>
+          <Field label="Fecha de nacimiento" id="nc-d"><input id="nc-d" type="date" className="input-field" value={form.fechaNacimiento} onChange={set("fechaNacimiento")}/></Field>
+          <Field label="Alergias / contraindicaciones" id="nc-a"><input id="nc-a" className="input-field" value={form.alergias} onChange={set("alergias")} placeholder="Ej. Alergia al pegamento"/></Field>
+          <Field label="Observaciones generales" id="nc-o" full><textarea id="nc-o" className="input-field" value={form.observaciones} onChange={set("observaciones")} placeholder="Detalles importantes…"/></Field>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn-primary" style={{opacity:form.nombre.trim()?1:.5}} disabled={!form.nombre.trim()} onClick={()=>onSave(form)}>
+            <Ico n="check" s={15}/> Crear ficha
+          </button>
+        </div>
+      </Modal>
+    );
+  }
+
+  function EditClientModal({ client, onClose, onSave }) {
+    const [form, setForm] = useState({...client});
+    const set = k => e => setForm({...form,[k]:e.target.value});
+    return (
+      <Modal onClose={onClose} title="Editar clienta">
+        <div className="form-grid">
+          <Field label="Nombre" id="ec-n"><input id="ec-n" className="input-field" value={form.nombre} onChange={set("nombre")} autoFocus/></Field>
+          <Field label="Teléfono" id="ec-t"><input id="ec-t" className="input-field" value={form.telefono} onChange={set("telefono")}/></Field>
+          <Field label="Alergias" id="ec-a"><input id="ec-a" className="input-field" value={form.alergias} onChange={set("alergias")}/></Field>
+          <Field label="Fecha de nacimiento" id="ec-d"><input id="ec-d" type="date" className="input-field" value={form.fechaNacimiento} onChange={set("fechaNacimiento")}/></Field>
+          <Field label="Observaciones" id="ec-o" full><textarea id="ec-o" className="input-field" value={form.observaciones} onChange={set("observaciones")}/></Field>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn-primary" onClick={()=>onSave(form)}><Ico n="check" s={15}/> Guardar</button>
+        </div>
+      </Modal>
+    );
+  }
+
+  /* ══════════════════════════════════════
+     CLIENT FILE
+  ══════════════════════════════════════ */
+  function ClientFile({ client, onBack, onUpdate, onDelete, showToast }) {
+    const [tab, setTab]           = useState("info");
+    const [editInfo, setEditInfo]   = useState(false);
+    const [newEntry, setNewEntry]   = useState(false);
+    const [confirmDel, setConfirmDel] = useState(false);
+
+    useEffect(() => {
+      const saved = loadPhotos(client.id);
+      if (saved.length && !client.fotos.length) onUpdate({...client, fotos:saved});
+    }, [client.id]);
+
+    const sorted = useMemo(() => [...client.historial].sort((a,b)=>b.fecha.localeCompare(a.fecha)), [client.historial]);
+    const initials = client.nombre.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]?.toUpperCase()).join("");
+
+    const TABS = [
+      {id:"info",     icon:"book",   label:"Observaciones"},
+      {id:"historial",icon:"list",   label:`Historial (${client.historial.length})`},
+      {id:"otros",    icon:"star",   label:"Otros servicios"},
+      {id:"fotos",    icon:"camera", label:"Fotografías"},
+      {id:"consent",  icon:"check",  label:"Consentimiento"},
+    ];
+
+    return (
+      <div className="animate-in">
+        <button className="back-btn" onClick={onBack}><Ico n="back" s={15}/> Todas las clientas</button>
+
+        <div className="file-header">
+          <div className="file-header-left">
+            <div className="file-avatar">{initials||"?"}</div>
+            <div>
+              <h1 className="page-title" style={{fontSize:28}}>{client.nombre}</h1>
+              <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"var(--ink-muted)",marginTop:4}}>
+                <Ico n="phone" s={13}/> {client.telefono||"Sin teléfono"}
+              </div>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn-icon" title="Editar" onClick={()=>setEditInfo(true)}><Ico n="edit" s={15}/></button>
+            <button className="btn-icon-danger" title="Eliminar ficha" onClick={()=>setConfirmDel(true)}><Ico n="trash" s={15}/></button>
+          </div>
+        </div>
+
+        {client.alergias && (
+          <div className="allergy-banner animate-in stagger-2">
+            <Ico n="alert" s={16}/> <span><strong>Alergias / contraindicaciones:</strong> {client.alergias}</span>
+          </div>
+        )}
+
+        <div className="gold-divider" style={{margin:"16px 0"}}/>
+
+        <div className="tabs-bar">
+          {TABS.map(t => (
+            <button key={t.id} className={`tab-btn${tab===t.id?" active":""}`} onClick={()=>setTab(t.id)}>
+              <Ico n={t.icon} s={13}/> {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab==="info" && (
+          <div className="panel animate-in">
+            <p className="panel-label">Observaciones generales</p>
+            <div className="gold-divider" style={{margin:"0 0 14px"}}/>
+            <p style={{fontSize:14.5,lineHeight:1.7,color:"var(--ink)",margin:0}}>{client.observaciones||"Sin observaciones registradas."}</p>
+            {client.fechaNacimiento && (
+              <p style={{marginTop:14,fontSize:13,color:"var(--ink-muted)"}}>
+                🎂 Nacimiento: <strong style={{color:"var(--ink)"}}>{formatDate(client.fechaNacimiento)}</strong>
+              </p>
+            )}
+          </div>
+        )}
+
+        {tab==="historial" && (
+          <div>
+            <div className="section-row">
+              <p style={{fontSize:13,color:"var(--ink-muted)",margin:0}}>De más reciente a más antiguo.</p>
+              <button className="btn-primary-sm" onClick={()=>setNewEntry(true)}><Ico n="plus" s={14}/> Registrar servicio</button>
+            </div>
+            {sorted.length===0 ? (
+              <div className="empty-state"><div className="empty-icon">✨</div><p className="empty-title">Sin servicios registrados</p><p className="empty-text">Registra el primer servicio de esta clienta.</p></div>
+            ) : (
+              <div className="timeline">
+                {sorted.map((h,i) => (
+                  <HistCard key={h.id} entry={h} delay={i}
+                    onDelete={()=>{ onUpdate({...client,historial:client.historial.filter(x=>x.id!==h.id)}); showToast("Servicio eliminado"); }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab==="fotos"   && <PhotosPanel   client={client} onUpdate={onUpdate} showToast={showToast}/>}
+        {tab==="otros"   && <OtrosPanel    client={client} onUpdate={onUpdate} showToast={showToast}/>}
+        {tab==="consent" && <ConsentPanel  client={client} onUpdate={onUpdate} showToast={showToast}/>}
+
+        {editInfo && <EditClientModal client={client} onClose={()=>setEditInfo(false)} onSave={u=>{onUpdate(u);setEditInfo(false);showToast("Datos actualizados");}}/>}
+        {newEntry && (
+          <HistModal
+            onClose={()=>setNewEntry(false)}
+            onSave={e=>{onUpdate({...client,historial:[e,...client.historial]});setNewEntry(false);showToast("✨ Servicio registrado");}}
+          />
+        )}
+        {confirmDel && (
+          <Modal onClose={()=>setConfirmDel(false)} title="Eliminar ficha" narrow>
+            <p style={{fontSize:14,lineHeight:1.6,color:"var(--ink)"}}>¿Eliminar la ficha de <strong>{client.nombre}</strong>? Esta acción no se puede deshacer.</p>
+            <div className="modal-actions">
+              <button className="btn-ghost" onClick={()=>setConfirmDel(false)}>Cancelar</button>
+              <button className="btn-danger" onClick={()=>onDelete(client.id)}>Eliminar ficha</button>
+            </div>
+          </Modal>
+        )}
+      </div>
+    );
+  }
+
+  /* ── HISTORIAL CARD ── */
+  function HistCard({ entry, onDelete, delay }) {
+    const [confirmDel, setConfirmDel] = useState(false);
+    const details = [
+      ["Tipo",      entry.tipoPestanas],
+      ["Curvatura", entry.curvatura],
+      ["Grosor",    entry.grosor ? entry.grosor+" mm" : ""],
+      ["Longitud",  entry.longitud],
+      ["Técnica",   entry.tecnica],
+      ["Mapping",   entry.mapping],
+      ["Productos", entry.productos],
+      ["Tiempo",    entry.tiempoMinutos ? entry.tiempoMinutos+" min" : ""],
+      ["Retoque",   entry.retoque],
+      ["Retiro",    entry.retiro],
+    ].filter(([,v])=>v);
+
+    return (
+      <div className="hist-card" style={{animationDelay:`${delay*0.08}s`}}>
+        <div className="hist-line"/>
+        <div className="hist-dot">{catIcon(entry.categoria)}</div>
+        <div className="hist-content">
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+            <div>
+              <div className="hist-date">{formatDate(entry.fecha)}</div>
+              <div className="hist-service">{entry.servicio || catLabel(entry.categoria)}</div>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+              {entry.precio && <span className="price-badge">${entry.precio}</span>}
+              <button style={{background:"none",border:"none",color:"var(--ink-muted)",cursor:"pointer",padding:"4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDel(true)}><Ico n="trash" s={14}/></button>
+            </div>
+          </div>
+          {details.length > 0 && (
+            <div className="detail-grid">
+              {details.map(([l,v])=>(
+                <div key={l} className="detail-item">
+                  <span className="detail-label">{l}</span>
+                  <span className="detail-value">{v}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {entry.observaciones && <div className="obs-box"><strong style={{color:"var(--ink)"}}>Nota:</strong> {entry.observaciones}</div>}
+          {confirmDel && (
+            <div className="inline-confirm">
+              <span>¿Eliminar este servicio?</span>
+              <button className="link-danger" onClick={onDelete}>Sí, eliminar</button>
+              <button className="link-soft"   onClick={()=>setConfirmDel(false)}>Cancelar</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ── HISTORIAL MODAL ── */
+  function HistModal({ onClose, onSave }) {
+    const [form, setForm] = useState(emptyEntry());
+    const set = k => e => setForm({...form,[k]:e.target.value});
+    const isLash = form.categoria === "pestanas" || form.categoria === "lifting";
+
+    return (
+      <Modal onClose={onClose} title="Registrar servicio" wide>
+        <div className="form-grid">
+          <Field label="Fecha" id="h-f"><input id="h-f" type="date" className="input-field" value={form.fecha} onChange={set("fecha")}/></Field>
+          <Field label="Categoría" id="h-c"><select id="h-c" className="input-field" value={form.categoria} onChange={set("categoria")}>{SERVICE_CATS.map(c=><option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}</select></Field>
+          <Field label="Servicio realizado" id="h-srv" full><input id="h-srv" className="input-field" value={form.servicio} onChange={set("servicio")} placeholder="Ej. Volumen ruso"/></Field>
+          {isLash && <>
+            <Field label="Tipo de pestañas" id="h-tp"><input id="h-tp" className="input-field" value={form.tipoPestanas} onChange={set("tipoPestanas")} placeholder="Ej. Seda, Visón"/></Field>
+            <Field label="Curvatura" id="h-cu"><select id="h-cu" className="input-field" value={form.curvatura} onChange={set("curvatura")}><option value="">Seleccionar…</option>{CURVATURAS.map(c=><option key={c} value={c}>{c}</option>)}</select></Field>
+            <Field label="Grosor" id="h-gr"><select id="h-gr" className="input-field" value={form.grosor} onChange={set("grosor")}><option value="">Seleccionar…</option>{GROSORES.map(g=><option key={g} value={g}>{g} mm</option>)}</select></Field>
+            <Field label="Longitud" id="h-lo"><input id="h-lo" className="input-field" value={form.longitud} onChange={set("longitud")} placeholder="Ej. 9-11 mm"/></Field>
+            <Field label="Técnica" id="h-tec"><select id="h-tec" className="input-field" value={form.tecnica} onChange={set("tecnica")}><option value="">Seleccionar…</option>{TECNICAS.map(t=><option key={t} value={t}>{t}</option>)}</select></Field>
+            <Field label="Mapping" id="h-map"><input id="h-map" className="input-field" value={form.mapping} onChange={set("mapping")} placeholder="Ej. Doll eye"/></Field>
+            <Field label="Retoque" id="h-ret"><select id="h-ret" className="input-field" value={form.retoque} onChange={set("retoque")}><option value="">— Sin retoque —</option><option value="Sí">Sí</option><option value="No">No</option></select></Field>
+            <Field label="Retiro" id="h-ri"><select id="h-ri" className="input-field" value={form.retiro} onChange={set("retiro")}><option value="">— Sin retiro —</option><option value="Sí">Sí</option><option value="No">No</option><option value="Parcial">Parcial</option></select></Field>
+            <Field label="Productos utilizados" id="h-pr" full><input id="h-pr" className="input-field" value={form.productos} onChange={set("productos")} placeholder="Ej. Pegamento Stacy Lash, Primer"/></Field>
+          </>}
+          <Field label="Tiempo (minutos)" id="h-ti"><input id="h-ti" type="number" min="0" className="input-field" value={form.tiempoMinutos} onChange={set("tiempoMinutos")} placeholder="Ej. 90"/></Field>
+          <Field label="Precio" id="h-pr2"><input id="h-pr2" type="number" min="0" className="input-field" value={form.precio} onChange={set("precio")} placeholder="Ej. 25"/></Field>
+          <Field label="Observaciones" id="h-obs" full><textarea id="h-obs" className="input-field" value={form.observaciones} onChange={set("observaciones")} placeholder="Notas adicionales sobre este servicio…"/></Field>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn-primary" onClick={()=>onSave(form)}><Ico n="check" s={15}/> Guardar servicio</button>
+        </div>
+      </Modal>
+    );
+  }
+
+  /* ── PHOTOS PANEL ── */
+  function PhotosPanel({ client, onUpdate, showToast }) {
+    const fileRef   = useRef(null);
+    const camRef    = useRef(null);
+    const [lightbox, setLightbox] = useState(null);
+    const [confirmDel, setConfirmDel] = useState(null);
+    const fotos = client.fotos || [];
+
+    const handleFiles = files => {
+      const arr = Array.from(files).filter(f=>f.type.startsWith("image/"));
+      if (!arr.length) return;
+      let loaded=0; const newF=[];
+      arr.forEach(file => {
+        const r = new FileReader();
+        r.onload = e => {
+          newF.push({id:uid("f"), dataUrl:e.target.result, nombre:file.name, fecha:localDate()});
+          if (++loaded === arr.length) {
+            const next={...client, fotos:[...fotos,...newF]};
+            onUpdate(next);
+            const res=savePhotos(client.id,[...fotos,...newF]);
+            if (res==="quota") showToast("⚠️ Sin espacio para fotos.");
+          }
+        };
+        r.readAsDataURL(file);
+      });
+    };
+
+    const delPhoto = id => {
+      const upd = fotos.filter(f=>f.id!==id);
+      onUpdate({...client,fotos:upd});
+      savePhotos(client.id,upd);
+      setConfirmDel(null);
+      if (lightbox?.id===id) setLightbox(null);
+    };
+
+    return (
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+          <button className="btn-primary-sm" onClick={()=>fileRef.current?.click()}><Ico n="image" s={14}/> Adjuntar foto</button>
+          <button className="btn-primary-sm" style={{background:"var(--ink-soft)"}} onClick={()=>camRef.current?.click()}><Ico n="camera" s={14}/> Tomar foto</button>
+          <input ref={fileRef} type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>{if(e.target.files?.length){handleFiles(e.target.files);e.target.value="";}}}/>
+          <input ref={camRef}  type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={e=>{if(e.target.files?.length){handleFiles(e.target.files);e.target.value="";}}}/>
+        </div>
+        {fotos.length===0 ? (
+          <div className="empty-state"><div className="empty-icon">📷</div><p className="empty-title">Sin fotografías</p><p className="empty-text">Adjunta fotos o tómalas con la cámara.</p></div>
+        ) : (
+          <div className="photo-grid">
+            {fotos.map(foto=>(
+              <div key={foto.id} className="photo-thumb" onClick={()=>setLightbox(foto)}>
+                <img src={foto.dataUrl} alt={foto.nombre}/>
+                <div className="photo-date">{foto.fecha}</div>
+                <button className="photo-del" onClick={e=>{e.stopPropagation();setConfirmDel(foto.id);}}><Ico n="trash" s={12}/></button>
+              </div>
+            ))}
+          </div>
+        )}
+        {confirmDel && (
+          <Modal onClose={()=>setConfirmDel(null)} title="Eliminar foto" narrow>
+            <p style={{fontSize:14,color:"var(--ink)",lineHeight:1.6}}>¿Eliminar esta fotografía? No se puede deshacer.</p>
+            <div className="modal-actions">
+              <button className="btn-ghost" onClick={()=>setConfirmDel(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={()=>delPhoto(confirmDel)}>Eliminar</button>
+            </div>
+          </Modal>
+        )}
+        {lightbox && (
+          <div style={{position:"fixed",inset:0,background:"rgba(42,31,45,.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:400,padding:20,backdropFilter:"blur(8px)"}} onClick={()=>setLightbox(null)}>
+            <div style={{position:"relative",maxWidth:"90vw",maxHeight:"90vh"}} onClick={e=>e.stopPropagation()}>
+              <img src={lightbox.dataUrl} alt={lightbox.nombre} style={{maxWidth:"90vw",maxHeight:"85vh",borderRadius:16,objectFit:"contain",boxShadow:"0 20px 60px rgba(0,0,0,.5)"}}/>
+              <button style={{position:"absolute",top:-14,right:-14,width:36,height:36,borderRadius:"50%",border:"none",background:"var(--rose-deep)",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 12px rgba(0,0,0,.3)"}} onClick={()=>setLightbox(null)}><Ico n="x" s={15}/></button>
+              <div style={{color:"rgba(255,255,255,.7)",fontSize:12,textAlign:"center",marginTop:8}}>{lightbox.fecha}</div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ── CONSENT PANEL ── */
+  function ConsentPanel({ client, onUpdate, showToast }) {
+    const cons = client.consentimiento || {};
+    const [form, setForm] = useState({
+      antecedentes: cons.antecedentes||"", alergias: cons.alergias||"",
+      lentesContacto:cons.lentesContacto||false, claustrofobia:cons.claustrofobia||false,
+      excesoPestanas:cons.excesoPestanas||false, lagrimalSeco:cons.lagrimalSeco||false,
+      cataratas:cons.cataratas||false, vertigo:cons.vertigo||false,
+      otros:cons.otros||"", firmadoEn:cons.firmadoEn||null, firmaDataUrl:cons.firmaDataUrl||null,
+    });
+    const [signed,  setSigned]  = useState(!!cons.firmaDataUrl);
+    const [drawing, setDrawing] = useState(false);
+    const canvasRef = useRef(null);
+    const lastPos   = useRef(null);
+    const pts       = useRef([]);
+    const roRef     = useRef(null);
+
+    const setF = k => e => setForm({...form,[k]:e.target.type==="checkbox"?e.target.checked:e.target.value});
+
+    const getPos = (e,cv) => {
+      const rect=cv.getBoundingClientRect();
+      const src=e.touches?e.touches[0]:e;
+      return {x:src.clientX-rect.left,y:src.clientY-rect.top};
+    };
+
+    const drawLine = ctx => {
+      ctx.beginPath(); ctx.moveTo(30,165); ctx.lineTo(canvasRef.current.getBoundingClientRect().width-30,165);
+      ctx.strokeStyle="#EDD9DE"; ctx.lineWidth=1.5; ctx.stroke();
+    };
+
+    const initCanvas = useCallback(()=>{
+      const cv=canvasRef.current; if(!cv) return;
+      const dpr=window.devicePixelRatio||1;
+      const rect=cv.getBoundingClientRect();
+      if(rect.width===0){setTimeout(initCanvas,50);return;}
+      cv.width=Math.round(rect.width*dpr); cv.height=Math.round(200*dpr);
+      const ctx=cv.getContext("2d");
+      ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr,dpr);
+      drawLine(ctx);
+      if(form.firmaDataUrl){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,rect.width,200);img.src=form.firmaDataUrl;}
+    },[]);
+
+    useEffect(()=>{
+      setTimeout(initCanvas,30);
+      if(window.ResizeObserver&&canvasRef.current){
+        roRef.current=new ResizeObserver(()=>initCanvas());
+        roRef.current.observe(canvasRef.current.parentElement);
+      }
+      return ()=>{if(roRef.current) roRef.current.disconnect();};
+    },[initCanvas]);
+
+    const startDraw=e=>{e.preventDefault();setDrawing(true);const cv=canvasRef.current;const pos=getPos(e,cv);lastPos.current=pos;pts.current=[pos];const ctx=cv.getContext("2d");ctx.beginPath();ctx.arc(pos.x,pos.y,1.2,0,Math.PI*2);ctx.fillStyle="var(--charcoal)";ctx.fill();};
+    const draw=e=>{e.preventDefault();if(!drawing)return;const cv=canvasRef.current;const ctx=cv.getContext("2d");const pos=getPos(e,cv);pts.current.push(pos);const p=pts.current;if(p.length<3){ctx.beginPath();ctx.moveTo(lastPos.current.x,lastPos.current.y);ctx.lineTo(pos.x,pos.y);ctx.strokeStyle="var(--charcoal)";ctx.lineWidth=2.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();}else{const i=p.length-1;const mx=(p[i-1].x+p[i].x)/2;const my=(p[i-1].y+p[i].y)/2;ctx.beginPath();ctx.moveTo((p[i-2].x+p[i-1].x)/2,(p[i-2].y+p[i-1].y)/2);ctx.quadraticCurveTo(p[i-1].x,p[i-1].y,mx,my);ctx.strokeStyle="var(--charcoal)";ctx.lineWidth=2.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();}lastPos.current=pos;};
+    const endDraw=e=>{e.preventDefault();setDrawing(false);lastPos.current=null;pts.current=[];};
+
+    const clearCanvas=()=>{const cv=canvasRef.current;const ctx=cv.getContext("2d");const dpr=window.devicePixelRatio||1;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.scale(dpr,dpr);drawLine(ctx);setSigned(false);};
+
+    const saveConsent=()=>{
+      const cv=canvasRef.current;const dataUrl=cv.toDataURL("image/png");
+      const blank=document.createElement("canvas");blank.width=cv.width;blank.height=cv.height;
+      const isEmpty=dataUrl===blank.toDataURL("image/png");
+      const upd={...form,firmaDataUrl:isEmpty?null:dataUrl,firmadoEn:isEmpty?null:new Date().toISOString()};
+      setSigned(!isEmpty);
+      onUpdate({...client,consentimiento:upd});
+      showToast("✅ Consentimiento guardado");
+    };
+
+    return (
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        <div className="panel">
+          <p className="panel-label">Antecedentes médicos</p>
+          <div className="gold-divider" style={{margin:"0 0 12px"}}/>
+          <textarea className="input-field" value={form.antecedentes} onChange={setF("antecedentes")} placeholder="Ej. Usa lentes de contacto, hipertensión..."/>
+        </div>
+        <div className="panel">
+          <p className="panel-label">Alergias</p>
+          <div className="gold-divider" style={{margin:"0 0 12px"}}/>
+          <textarea className="input-field" value={form.alergias} onChange={setF("alergias")} placeholder="Ej. Ninguna / alergia al pegamento..."/>
+        </div>
+        <div className="panel">
+          <p className="panel-label">Condiciones</p>
+          <div className="gold-divider" style={{margin:"0 0 12px"}}/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            {[["lentesContacto","Lentes de contacto"],["claustrofobia","Claustrofobia"],["excesoPestanas","Exceso de lágrimas"],["lagrimalSeco","Lagrimal seco"],["cataratas","Cataratas"],["vertigo","Vértigo"]].map(([k,l])=>(
+              <label key={k} style={{display:"flex",alignItems:"center",gap:8,fontSize:13.5,color:"var(--ink)",cursor:"pointer"}}>
+                <input type="checkbox" checked={form[k]} onChange={setF(k)}/> {l}
+              </label>
+            ))}
+          </div>
+          <div style={{marginTop:14}}>
+            <label className="field-label" htmlFor="co-otros">Otros</label>
+            <input id="co-otros" className="input-field" style={{marginTop:6}} value={form.otros} onChange={setF("otros")} placeholder="Otros antecedentes..."/>
+          </div>
+        </div>
+        <div className="panel" style={{background:"var(--blush)"}}>
+          <p className="panel-label">Consentimiento informado</p>
+          <div className="gold-divider" style={{margin:"0 0 12px"}}/>
+          <p style={{fontSize:13,color:"var(--ink-soft)",lineHeight:1.8,margin:0}}>
+            He leído y entiendo los puntos anteriores.<br/>
+            He sido informada del procedimiento y cuidado de las extensiones.<br/>
+            Me hago cargo de los cuidados posteriores.<br/>
+            En caso de reacción alérgica, daré aviso de forma inmediata.
+          </p>
+        </div>
+        <div className="panel" style={{padding:0,overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",borderBottom:"1.5px solid var(--border)",background:"var(--blush)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:18}}>✍️</span>
+              <p className="panel-label" style={{margin:0}}>Firma de la clienta</p>
+            </div>
+            <button className="btn-ghost" style={{padding:"6px 14px",fontSize:12}} onClick={clearCanvas}>Limpiar</button>
+          </div>
+          <div style={{padding:18}}>
+            <div className="canvas-wrap">
+              <canvas ref={canvasRef} style={{width:"100%",height:200,display:"block",touchAction:"none",cursor:"crosshair"}}
+                onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+                onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}
+              />
+              {!signed && (
+                <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-60%)",pointerEvents:"none",textAlign:"center"}}>
+                  <div style={{fontSize:28,opacity:.12}}>✍️</div>
+                  <p style={{fontSize:11,color:"var(--ink-muted)",opacity:.5,margin:"4px 0 0"}}>Firma aquí</p>
+                </div>
+              )}
+            </div>
+            <p style={{fontSize:11,color:"var(--ink-muted)",marginTop:6,textAlign:"center"}}>
+              {signed ? `✅ Firmado el ${form.firmadoEn?formatDate(form.firmadoEn.slice(0,10)):""}` : "Firma con el dedo o el mouse"}
+            </p>
+          </div>
+        </div>
+        <div style={{display:"flex",justifyContent:"flex-end"}}>
+          <button className="btn-primary" onClick={saveConsent}><Ico n="check" s={16}/> Guardar consentimiento</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── OTROS SERVICIOS PANEL ── */
+  function OtrosPanel({ client, onUpdate, showToast }) {
+    const CATS = [{id:"manos",label:"Manos / Uñas",icon:"💅"},{id:"depilacion",label:"Depilación",icon:"🌸"},{id:"cejas",label:"Cejas / Laminado",icon:"🌿"},{id:"otro",label:"Otro",icon:"⭐"}];
+    const otros = client.otrosServicios || [];
+    const [showForm, setShowForm] = useState(false);
+    const [editId,   setEditId]   = useState(null);
+    const [form, setForm] = useState({categoria:"manos",nombre:"",preferencias:"",ultimaVez:""});
+    const [confirmDel, setConfirmDel] = useState(null);
+
+    const setF = k => e => setForm({...form,[k]:e.target.value});
+    const catL = id => CATS.find(c=>c.id===id)?.label||id;
+    const catI = id => CATS.find(c=>c.id===id)?.icon||"⭐";
+
+    const openNew  = ()=>{setForm({categoria:"manos",nombre:"",preferencias:"",ultimaVez:""});setEditId(null);setShowForm(true);};
+    const openEdit = s =>{setForm({categoria:s.categoria,nombre:s.nombre,preferencias:s.preferencias,ultimaVez:s.ultimaVez});setEditId(s.id);setShowForm(true);};
+
+    const save=()=>{
+      if(!form.nombre.trim()) return;
+      const upd=editId?otros.map(s=>s.id===editId?{...s,...form}:s):[...otros,{id:uid("srv"),...form}];
+      onUpdate({...client,otrosServicios:upd});
+      setShowForm(false);
+      showToast(editId?"Servicio actualizado":"Servicio agregado");
+    };
+
+    const del=id=>{onUpdate({...client,otrosServicios:otros.filter(s=>s.id!==id)});setConfirmDel(null);showToast("Eliminado");};
+
+    return (
+      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+        <div className="section-row">
+          <p style={{fontSize:13,color:"var(--ink-muted)",margin:0}}>Preferencias y notas por servicio adicional.</p>
+          <button className="btn-primary-sm" onClick={openNew}><Ico n="plus" s={14}/> Agregar</button>
+        </div>
+        {otros.length===0 ? (
+          <div className="empty-state"><div className="empty-icon">💅</div><p className="empty-title">Sin otros servicios</p><p className="empty-text">Agrega servicios extra con sus preferencias.</p></div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {otros.map(srv=>(
+              <div key={srv.id} className="panel" style={{display:"flex",gap:14,alignItems:"flex-start"}}>
+                <div style={{width:40,height:40,borderRadius:12,background:"var(--blush)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{catI(srv.categoria)}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+                    <div>
+                      <span style={{fontSize:10,fontWeight:700,color:"var(--gold-deep)",textTransform:"uppercase",letterSpacing:1.5}}>{catL(srv.categoria)}</span>
+                      <p style={{margin:"3px 0 0",fontWeight:700,fontSize:15,fontFamily:"'Playfair Display',serif",color:"var(--charcoal)"}}>{srv.nombre}</p>
+                    </div>
+                    <div style={{display:"flex",gap:6,flexShrink:0}}>
+                      <button className="btn-icon" onClick={()=>openEdit(srv)}><Ico n="edit" s={14}/></button>
+                      <button className="btn-icon-danger" onClick={()=>setConfirmDel(srv.id)}><Ico n="trash" s={14}/></button>
+                    </div>
+                  </div>
+                  {srv.preferencias && <div className="obs-box" style={{marginTop:10}}><strong style={{color:"var(--ink)"}}>Preferencias:</strong> {srv.preferencias}</div>}
+                  {srv.ultimaVez && <p style={{margin:"8px 0 0",fontSize:12.5,color:"var(--ink-muted)"}}><strong>Última vez:</strong> {srv.ultimaVez}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {showForm && (
+          <Modal onClose={()=>setShowForm(false)} title={editId?"Editar servicio":"Agregar servicio"}>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              <Field label="Categoría" id="os-c"><select id="os-c" className="input-field" value={form.categoria} onChange={setF("categoria")}>{CATS.map(c=><option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}</select></Field>
+              <Field label="Nombre del servicio" id="os-n"><input id="os-n" className="input-field" value={form.nombre} onChange={setF("nombre")} placeholder="Ej. Semipermanente, Depilación cejas…" autoFocus/></Field>
+              <Field label="Preferencias" id="os-p"><textarea id="os-p" className="input-field" value={form.preferencias} onChange={setF("preferencias")} placeholder="Ej. Le gustan las cejas con difuminado…"/></Field>
+              <Field label="Última vez" id="os-u"><textarea id="os-u" className="input-field" value={form.ultimaVez} onChange={setF("ultimaVez")} placeholder="Ej. Laminado con tinte marrón claro…"/></Field>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-ghost" onClick={()=>setShowForm(false)}>Cancelar</button>
+              <button className="btn-primary" style={{opacity:form.nombre.trim()?1:.5}} disabled={!form.nombre.trim()} onClick={save}><Ico n="check" s={15}/> {editId?"Actualizar":"Guardar"}</button>
+            </div>
+          </Modal>
+        )}
+        {confirmDel && (
+          <Modal onClose={()=>setConfirmDel(null)} title="Eliminar servicio" narrow>
+            <p style={{fontSize:14,color:"var(--ink)",lineHeight:1.6}}>¿Eliminar este servicio? No se puede deshacer.</p>
+            <div className="modal-actions">
+              <button className="btn-ghost" onClick={()=>setConfirmDel(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={()=>del(confirmDel)}>Eliminar</button>
+            </div>
+          </Modal>
+        )}
+      </div>
+    );
+  }
+
+  /* ══════════════════════════════════════
+     AGENDA
+  ══════════════════════════════════════ */
+  function Agenda({ apts, clients, onUpdate, onOpenClient, showToast }) {
+    const [mode, setMode] = useState("semana");
+    const [cursor, setCursor] = useState(()=>{const d=new Date();d.setHours(0,0,0,0);return d;});
+    const [showNew, setShowNew] = useState(false);
+    const [editing, setEditing] = useState(null);
+
+    const days = useMemo(()=>{
+      if(mode==="dia") return [new Date(cursor)];
+      const s=startOfWeek(cursor);
+      return Array.from({length:7},(_,i)=>addDays(s,i));
+    },[mode,cursor]);
+
+    const navigate = dir => setCursor(prev=>{const n=new Date(prev);n.setDate(n.getDate()+dir*(mode==="dia"?1:7));return n;});
+
+    const byDay = useMemo(()=>{
+      const map={};
+      for(const d of days) map[dateKey(d)]=[];
+      for(const a of apts) if(map[a.fecha]!==undefined) map[a.fecha].push(a);
+      return map;
+    },[apts,days]);
+
+    return (
+      <div className="animate-in">
+        <div className="page-header">
+          <div>
+            <p className="page-eyebrow">Tu semana de trabajo</p>
+            <h1 className="page-title">Agenda</h1>
+          </div>
+          <button className="btn-primary" onClick={()=>setShowNew(true)}><Ico n="plus" s={16}/> Nueva cita</button>
+        </div>
+
+        <div className="agenda-toolbar">
+          <div className="nav-date-controls">
+            <button className="btn-nav-arrow" onClick={()=>navigate(-1)}><Ico n="chL" s={16}/></button>
+            <span className="date-range-label">{rangeLabel(days,mode)}</span>
+            <button className="btn-nav-arrow" onClick={()=>navigate(1)}><Ico n="chR" s={16}/></button>
+            <button className="btn-today" onClick={()=>{const d=new Date();d.setHours(0,0,0,0);setCursor(d);}}>Hoy</button>
+          </div>
+          <div className="mode-toggle">
+            <button className={`mode-btn${mode==="dia"?" active":""}`} onClick={()=>setMode("dia")}>Día</button>
+            <button className={`mode-btn${mode==="semana"?" active":""}`} onClick={()=>setMode("semana")}>Semana</button>
+          </div>
+        </div>
+
+        <div className="agenda-scroll">
+          <div className="agenda-grid" style={{gridTemplateColumns:`repeat(${days.length},1fr)`,minWidth:mode==="semana"?"580px":"auto"}}>
+            {days.map(d=>{
+              const key=dateKey(d);
+              const dayApts=(byDay[key]||[]).sort((a,b)=>a.hora.localeCompare(b.hora));
+              const isToday=key===localDate();
+              return (
+                <div key={key} style={{display:"flex",flexDirection:"column",gap:8}}>
+                  <div className={`agenda-col-header${isToday?" today":""}`}>
+                    <span className="col-day">{weekdayShort(d)}</span>
+                    <span className="col-num">{d.getDate()}</span>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                    {dayApts.length===0 && <p style={{fontSize:11,color:"var(--ink-muted)",textAlign:"center",padding:"8px 0"}}>Sin citas</p>}
+                    {dayApts.map(a=>(
+                      <AptCard key={a.id} apt={a}
+                        onEdit={()=>setEditing(a)}
+                        onOpenClient={()=>a.clienteId&&onOpenClient(a.clienteId)}
+                        onCancel={id=>{onUpdate(apts.map(x=>x.id===id?{...x,estado:"cancelada"}:x));showToast("Cita cancelada");}}
+                        onDelete={id=>{onUpdate(apts.filter(x=>x.id!==id));showToast("Cita eliminada");}}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {showNew && <AptModal clients={clients} initial={{...emptyApt(),fecha:dateKey(cursor)}} onClose={()=>setShowNew(false)} onSave={a=>{onUpdate([...apts,a]);setShowNew(false);showToast("✨ Cita agendada");}}/>}
+        {editing  && <AptModal clients={clients} initial={editing} editing onClose={()=>setEditing(null)} onSave={a=>{onUpdate(apts.map(x=>x.id===a.id?a:x));setEditing(null);showToast("Cita actualizada");}}/>}
+      </div>
+    );
+  }
+
+  function AptCard({ apt, onEdit, onOpenClient, onCancel, onDelete }) {
+    const [confirmDel, setConfirmDel] = useState(false);
+    const cancelada = apt.estado === "cancelada";
+    return (
+      <div className={`apt-card${cancelada?" cancelada":" normal"}`}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span className="apt-time">{apt.hora}</span>
+          {cancelada && <span style={{fontSize:10,fontWeight:700,color:"var(--danger)",background:"#FDF0F3",padding:"2px 8px",borderRadius:99}}>CANCELADA</span>}
+        </div>
+        <button className="apt-client" onClick={onOpenClient}>{apt.clienteNombre||"Sin clienta"}</button>
+        <div className="apt-service">{apt.servicio||catLabel(apt.categoria)}</div>
+        {!confirmDel ? (
+          <div style={{display:"flex",gap:5,marginTop:7,flexWrap:"wrap"}}>
+            {!cancelada && <button className="btn-primary-sm" style={{padding:"4px 9px",fontSize:11}} onClick={onEdit}>Editar</button>}
+            {!cancelada && <button style={{padding:"4px 9px",fontSize:11,borderRadius:7,border:"1.5px solid #F2D0D8",background:"#FDF0F3",color:"var(--danger)",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>onCancel(apt.id)}>Cancelar</button>}
+            <button style={{padding:"4px 9px",fontSize:11,borderRadius:7,border:"none",background:"transparent",color:"var(--ink-muted)",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setConfirmDel(true)}>Eliminar</button>
+          </div>
+        ) : (
+          <div style={{marginTop:7,display:"flex",gap:8,alignItems:"center",fontSize:12,color:"var(--ink-muted)"}}>
+            <span>¿Eliminar?</span>
+            <button className="link-danger" onClick={()=>onDelete(apt.id)}>Sí</button>
+            <button className="link-soft" onClick={()=>setConfirmDel(false)}>No</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function AptModal({ clients, initial, editing, onClose, onSave }) {
+    const [form, setForm] = useState(initial);
+    const set = k => e => setForm(p=>({...p,[k]:e.target.value}));
+    const handleClient = e => {
+      const id=e.target.value;
+      const c=clients.find(cl=>cl.id===id);
+      setForm(p=>({...p,clienteId:id,clienteNombre:c?c.nombre:""}));
+    };
+    return (
+      <Modal onClose={onClose} title={editing?"Editar cita":"Nueva cita"}>
+        <div className="form-grid">
+          <Field label="Clienta" id="ap-cli" full><select id="ap-cli" className="input-field" value={form.clienteId} onChange={handleClient}><option value="">Seleccionar clienta…</option>{clients.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select></Field>
+          <Field label="Fecha" id="ap-f"><input id="ap-f" type="date" className="input-field" value={form.fecha} onChange={set("fecha")}/></Field>
+          <Field label="Hora" id="ap-h"><input id="ap-h" type="time" className="input-field" value={form.hora} onChange={set("hora")}/></Field>
+          <Field label="Servicio" id="ap-s" full><input id="ap-s" className="input-field" value={form.servicio} onChange={set("servicio")} placeholder="Ej. Volumen ruso"/></Field>
+          <Field label="Notas" id="ap-n" full><textarea id="ap-n" className="input-field" value={form.notas} onChange={set("notas")} placeholder="Observaciones para la cita…"/></Field>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn-primary" onClick={()=>onSave(form)}><Ico n="check" s={15}/> Confirmar cita</button>
+        </div>
+      </Modal>
+    );
+  }
+
+  /* ── BASE COMPONENTS ── */
+  function Modal({ children, onClose, title, wide, narrow }) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className={`modal-card${wide?" wide":""}${narrow?" narrow":""}`} onClick={e=>e.stopPropagation()}>
+          <div className="modal-header">
+            <h2 className="modal-title">{title}</h2>
+            <button className="modal-close" onClick={onClose}><Ico n="x" s={16}/></button>
+          </div>
+          <div className="modal-body">{children}</div>
+        </div>
+      </div>
+    );
+  }
+
+  function Field({ label, children, id, full }) {
+    return (
+      <div className={`field${full?" field-full":""}`}>
+        <label className="field-label" htmlFor={id}>{label}</label>
+        {children}
+      </div>
+    );
+  }
+
+  /* ── RENDER ── */
+  ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
 </body>
 </html>
 
