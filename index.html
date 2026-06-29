@@ -18,25 +18,25 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --rose:       #C9907A;
-    --rose-deep:  #9B4F6A;
-    --rose-light: #E8B4A0;
+    --rose:       #C9433A;
+    --rose-deep:  #8C1E1E;
+    --rose-light: #E07A6A;
     --gold:       #D4AF7A;
     --gold-light: #EDD9A3;
     --gold-deep:  #B8923A;
-    --pearl:      #FDF8F5;
-    --blush:      #F7ECEE;
-    --blush-mid:  #EDD9DE;
-    --charcoal:   #2A1F2D;
-    --ink:        #3D2B3D;
-    --ink-soft:   #7A5C6E;
-    --ink-muted:  #A8879A;
+    --pearl:      #FDF8F0;
+    --blush:      #FBEFE6;
+    --blush-mid:  #F0D9C4;
+    --charcoal:   #2A1F1A;
+    --ink:        #3D2B22;
+    --ink-soft:   #7A5C46;
+    --ink-muted:  #A88B6E;
     --white:      #FFFFFF;
-    --border:     #EDD9DE;
-    --danger:     #9B3A4F;
-    --shadow-sm:  0 2px 12px rgba(155,79,106,.10);
-    --shadow-md:  0 8px 32px rgba(155,79,106,.14);
-    --shadow-lg:  0 20px 60px rgba(155,79,106,.18);
+    --border:     #F0D9C4;
+    --danger:     #9B3A3A;
+    --shadow-sm:  0 2px 12px rgba(140,30,30,.10);
+    --shadow-md:  0 8px 32px rgba(140,30,30,.14);
+    --shadow-lg:  0 20px 60px rgba(140,30,30,.18);
     --radius-sm:  8px;
     --radius-md:  14px;
     --radius-lg:  20px;
@@ -61,7 +61,7 @@
   .sidebar {
     width: 260px;
     flex-shrink: 0;
-    background: linear-gradient(180deg, #6B2D4A 0%, #4A1A32 60%, #3A1228 100%);
+    background: linear-gradient(180deg, #7A1F1A 0%, #551410 60%, #3D0E0B 100%);
     display: flex;
     flex-direction: column;
     position: sticky;
@@ -76,20 +76,20 @@
     inset: 0;
     background:
       radial-gradient(ellipse at 20% 8%, rgba(212,175,122,.28) 0%, transparent 55%),
-      radial-gradient(ellipse at 80% 92%, rgba(201,144,122,.20) 0%, transparent 55%);
+      radial-gradient(ellipse at 80% 92%, rgba(140,30,30,.18) 0%, transparent 55%);
     pointer-events: none;
   }
 
-  /* cherry blossom petals decoration */
+  /* warm golden glow decoration */
   .sidebar::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 90px;
     background:
-      radial-gradient(ellipse at 15% 0%, rgba(255,182,193,.22) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 0%, rgba(255,160,180,.18) 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 0%, rgba(255,192,203,.20) 0%, transparent 50%);
+      radial-gradient(ellipse at 15% 0%, rgba(212,175,122,.22) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 0%, rgba(212,175,122,.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 0%, rgba(212,175,122,.20) 0%, transparent 50%);
     pointer-events: none;
   }
 
@@ -305,9 +305,9 @@
     background: linear-gradient(135deg, var(--rose-deep) 0%, var(--rose) 100%);
     color: #fff; font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 600;
     cursor: pointer; transition: all .2s ease;
-    box-shadow: 0 4px 16px rgba(155,79,106,.30); white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(140,30,30,.30); white-space: nowrap;
   }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(155,79,106,.38); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(140,30,30,.38); }
   .btn-primary:active { transform: translateY(0); }
 
   .btn-primary-sm {
@@ -316,9 +316,9 @@
     background: linear-gradient(135deg, var(--rose-deep), var(--rose));
     color: #fff; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600;
     cursor: pointer; transition: all .2s ease;
-    box-shadow: 0 3px 10px rgba(155,79,106,.25); white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(140,30,30,.25); white-space: nowrap;
   }
-  .btn-primary-sm:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(155,79,106,.32); }
+  .btn-primary-sm:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(140,30,30,.32); }
 
   .btn-ghost {
     padding: 12px 20px; border-radius: var(--radius-md);
@@ -334,7 +334,7 @@
     font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 600;
     cursor: pointer; transition: all .2s ease;
   }
-  .btn-danger:hover { background: #7A2E3F; transform: translateY(-1px); }
+  .btn-danger:hover { background: #6E1F1F; transform: translateY(-1px); }
 
   .btn-icon {
     width: 38px; height: 38px; border-radius: var(--radius-sm);
@@ -346,11 +346,11 @@
 
   .btn-icon-danger {
     width: 38px; height: 38px; border-radius: var(--radius-sm);
-    border: 1.5px solid #F2D0D8; background: #FDF0F3;
+    border: 1.5px solid #F0CDB8; background: #FBEAE0;
     color: var(--danger); display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all .2s ease; flex-shrink: 0;
   }
-  .btn-icon-danger:hover { background: #F8DDE3; }
+  .btn-icon-danger:hover { background: #F5DCC6; }
 
   /* ── SEARCH ── */
   .search-wrap {
@@ -359,7 +359,7 @@
     border-radius: var(--radius-lg); padding: 13px 18px;
     margin-bottom: 24px; transition: border-color .2s; box-shadow: var(--shadow-sm);
   }
-  .search-wrap:focus-within { border-color: var(--rose-light); box-shadow: 0 0 0 3px rgba(201,144,122,.12); }
+  .search-wrap:focus-within { border-color: var(--rose-light); box-shadow: 0 0 0 3px rgba(140,30,30,.12); }
   .search-input { flex: 1; border: none; outline: none; font-family: 'Inter', sans-serif; font-size: 14px; background: transparent; color: var(--ink); }
   .search-input::placeholder { color: var(--ink-muted); }
 
@@ -381,7 +381,7 @@
     background: linear-gradient(135deg, var(--gold) 0%, var(--rose) 100%);
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700;
-    flex-shrink: 0; box-shadow: 0 3px 12px rgba(155,79,106,.25);
+    flex-shrink: 0; box-shadow: 0 3px 12px rgba(140,30,30,.25);
   }
 
   .client-card-name { font-size: 15.5px; font-weight: 600; color: var(--charcoal); margin-bottom: 4px; }
@@ -391,7 +391,7 @@
   .allergy-pill {
     display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
     font-size: 10.5px; font-weight: 700; color: var(--danger);
-    background: #FDF0F3; border: 1px solid #F2D0D8;
+    background: #FBEAE0; border: 1px solid #F0CDB8;
     padding: 3px 9px; border-radius: 99px; letter-spacing: .3px;
   }
 
@@ -415,7 +415,7 @@
     font-weight: 500; cursor: pointer; white-space: nowrap; transition: all .18s ease;
   }
   .tab-btn:hover { color: var(--rose-deep); }
-  .tab-btn.active { background: var(--white); color: var(--rose-deep); font-weight: 600; box-shadow: 0 2px 8px rgba(155,79,106,.12); }
+  .tab-btn.active { background: var(--white); color: var(--rose-deep); font-weight: 600; box-shadow: 0 2px 8px rgba(140,30,30,.12); }
 
   /* ── PANEL ── */
   .panel { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); }
@@ -433,7 +433,7 @@
   .hist-date { font-size: 11px; font-weight: 600; color: var(--ink-muted); letter-spacing: .5px; }
   .hist-service { font-size: 16px; font-weight: 600; font-family: 'Playfair Display', serif; color: var(--charcoal); margin-top: 2px; }
 
-  .price-badge { font-size: 12.5px; font-weight: 700; color: var(--rose-deep); background: linear-gradient(135deg, var(--blush) 0%, #F5DDE2 100%); border: 1px solid var(--blush-mid); padding: 4px 12px; border-radius: 99px; }
+  .price-badge { font-size: 12.5px; font-weight: 700; color: var(--rose-deep); background: linear-gradient(135deg, var(--blush) 0%, #F5DCC6 100%); border: 1px solid var(--blush-mid); padding: 4px 12px; border-radius: 99px; }
 
   .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
   .detail-item { display: flex; flex-direction: column; gap: 2px; }
@@ -444,7 +444,7 @@
 
   /* ── MODAL ── */
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(42,31,45,.5);
+    position: fixed; inset: 0; background: rgba(40,25,20,.5);
     backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     display: flex; align-items: center; justify-content: center;
     padding: 20px; z-index: 200; animation: fadeIn .18s ease;
@@ -484,7 +484,7 @@
     font-family: 'Inter', sans-serif; font-size: 13.5px; color: var(--ink);
     background: var(--white); outline: none; transition: border-color .18s, box-shadow .18s; width: 100%;
   }
-  .input-field:focus { border-color: var(--rose-light); box-shadow: 0 0 0 3px rgba(201,144,122,.12); }
+  .input-field:focus { border-color: var(--rose-light); box-shadow: 0 0 0 3px rgba(140,30,30,.12); }
   .input-field::placeholder { color: var(--ink-muted); }
   textarea.input-field { min-height: 76px; resize: vertical; }
   select.input-field { cursor: pointer; }
@@ -505,7 +505,7 @@
   .btn-today:hover { border-color: var(--rose-light); color: var(--rose-deep); background: var(--blush); }
   .mode-toggle { display: flex; background: var(--blush); border-radius: var(--radius-md); padding: 4px; }
   .mode-btn { padding: 7px 16px; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--ink-soft); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .18s; }
-  .mode-btn.active { background: var(--white); color: var(--rose-deep); font-weight: 600; box-shadow: 0 2px 8px rgba(155,79,106,.12); }
+  .mode-btn.active { background: var(--white); color: var(--rose-deep); font-weight: 600; box-shadow: 0 2px 8px rgba(140,30,30,.12); }
 
   .agenda-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .agenda-grid { display: grid; gap: 10px; min-width: 580px; }
@@ -518,8 +518,8 @@
 
   .apt-card { border-radius: var(--radius-md); padding: 12px 13px; border: 1.5px solid; display: flex; flex-direction: column; gap: 4px; transition: box-shadow .2s; animation: fadeUp .3s ease both; }
   .apt-card:hover { box-shadow: var(--shadow-md); }
-  .apt-card.normal { background: #FFF8FB; border-color: var(--blush-mid); }
-  .apt-card.cancelada { background: #F9F5F5; border-color: #E8D0D0; opacity: .75; }
+  .apt-card.normal { background: #FDF6F0; border-color: var(--blush-mid); }
+  .apt-card.cancelada { background: #F7F1EA; border-color: #E8D4C2; opacity: .75; }
   .apt-time { font-size: 11px; font-weight: 700; color: var(--rose-deep); }
   .apt-client { font-weight: 600; font-size: 13px; color: var(--charcoal); background: none; border: none; font-family: inherit; cursor: pointer; padding: 0; text-align: left; }
   .apt-client:hover { color: var(--rose-deep); }
@@ -528,15 +528,15 @@
   /* ── CLIENT FILE ── */
   .file-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
   .file-header-left { display: flex; gap: 18px; align-items: center; }
-  .file-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--gold) 0%, var(--rose) 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; box-shadow: 0 4px 16px rgba(155,79,106,.28); flex-shrink: 0; }
-  .allergy-banner { display: flex; align-items: center; gap: 10px; background: #FDF0F3; border: 1.5px solid #F2D0D8; color: #7A2E3F; padding: 12px 18px; border-radius: var(--radius-md); font-size: 13.5px; margin-bottom: 8px; }
+  .file-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--gold) 0%, var(--rose) 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; box-shadow: 0 4px 16px rgba(140,30,30,.28); flex-shrink: 0; }
+  .allergy-banner { display: flex; align-items: center; gap: 10px; background: #FBEAE0; border: 1.5px solid #F0CDB8; color: #6E1F1F; padding: 12px 18px; border-radius: var(--radius-md); font-size: 13.5px; margin-bottom: 8px; }
 
   /* ── PHOTO GRID ── */
   .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 12px; }
   .photo-thumb { position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 1; background: var(--blush); border: 1.5px solid var(--border); cursor: pointer; transition: transform .2s, box-shadow .2s; }
   .photo-thumb:hover { transform: scale(1.02); box-shadow: var(--shadow-md); }
   .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .photo-date { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(42,31,45,.65)); color: #fff; font-size: 10px; padding: 16px 8px 6px; text-align: center; }
+  .photo-date { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(40,25,20,.65)); color: #fff; font-size: 10px; padding: 16px 8px 6px; text-align: center; }
   .photo-del { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 8px; border: none; background: rgba(155,58,79,.85); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity .18s; backdrop-filter: blur(4px); }
   .photo-thumb:hover .photo-del { opacity: 1; }
 
@@ -555,7 +555,7 @@
   }
 
   .consent-doc-header {
-    background: linear-gradient(135deg, #6B2D4A 0%, #4A1A32 100%);
+    background: linear-gradient(135deg, #7A1F1A 0%, #551410 100%);
     padding: 28px 32px 24px;
     text-align: center;
     position: relative;
@@ -670,7 +670,7 @@
   .condition-label { font-size: 12.5px; color: var(--ink); line-height: 1.3; }
 
   .consent-declaration {
-    background: linear-gradient(135deg, #FFF8FB 0%, #FDF0F5 100%);
+    background: linear-gradient(135deg, #FDF6F0 0%, #FBEAE0 100%);
     border: 1.5px solid var(--blush-mid);
     border-radius: var(--radius-md);
     padding: 20px 24px;
@@ -725,7 +725,7 @@
   }
 
   /* ── TOAST ── */
-  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--charcoal); color: #fff; padding: 12px 24px; border-radius: 99px; font-size: 13.5px; font-weight: 600; z-index: 500; animation: toastIn .25s cubic-bezier(.22,.68,0,1.2); white-space: nowrap; box-shadow: 0 8px 30px rgba(42,31,45,.3); border: 1px solid rgba(255,255,255,.1); }
+  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--charcoal); color: #fff; padding: 12px 24px; border-radius: 99px; font-size: 13.5px; font-weight: 600; z-index: 500; animation: toastIn .25s cubic-bezier(.22,.68,0,1.2); white-space: nowrap; box-shadow: 0 8px 30px rgba(40,25,20,.3); border: 1px solid rgba(255,255,255,.1); }
   @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
   /* ── BOTTOM NAV ── */
@@ -1229,7 +1229,7 @@
         )}
         {confirmDel && <Modal onClose={()=>setConfirmDel(null)} title="Eliminar foto" narrow><p style={{fontSize:14,color:"var(--ink)",lineHeight:1.6}}>¿Eliminar esta fotografía?</p><div className="modal-actions"><button className="btn-ghost" onClick={()=>setConfirmDel(null)}>Cancelar</button><button className="btn-danger" onClick={()=>delPhoto(confirmDel)}>Eliminar</button></div></Modal>}
         {lightbox && (
-          <div style={{position:"fixed",inset:0,background:"rgba(42,31,45,.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:400,padding:20,backdropFilter:"blur(8px)"}} onClick={()=>setLightbox(null)}>
+          <div style={{position:"fixed",inset:0,background:"rgba(40,25,20,.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:400,padding:20,backdropFilter:"blur(8px)"}} onClick={()=>setLightbox(null)}>
             <div style={{position:"relative",maxWidth:"90vw",maxHeight:"90vh"}} onClick={e=>e.stopPropagation()}>
               <img src={lightbox.dataUrl} alt={lightbox.nombre} style={{maxWidth:"90vw",maxHeight:"85vh",borderRadius:16,objectFit:"contain",boxShadow:"0 20px 60px rgba(0,0,0,.5)"}}/>
               <button style={{position:"absolute",top:-14,right:-14,width:36,height:36,borderRadius:"50%",border:"none",background:"var(--rose-deep)",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setLightbox(null)}><Ico n="x" s={15}/></button>
@@ -1259,28 +1259,50 @@
       firmaDataUrl:    cons.firmaDataUrl    || null,
     });
 
-    // ── Canvas refs & state ──
+    // ── Estado real de React para la firma (dispara re-render correctamente) ──
+    const [hasInk, setHasInk]   = useState(!!cons.firmaDataUrl); // hay trazo dibujado en el canvas
+    const [locked, setLocked]   = useState(!!cons.firmaDataUrl); // firma guardada → canvas bloqueado
+
+    // ── Canvas refs (solo para dibujar, no para decidir UI) ──
     const canvasRef  = useRef(null);
     const isDrawing  = useRef(false);
     const lastPos    = useRef(null);
     const pts        = useRef([]);
-    const hasStrokes = useRef(!!cons.firmaDataUrl); // tracks if canvas has content
+    const canvasReady = useRef(false);
 
     const setF = k => e => setForm(prev => ({...prev, [k]: e.target.type==="checkbox" ? e.target.checked : e.target.value}));
 
-    // ── Draw the baseline on a clean canvas ──
+    // ── Dibuja la línea base ──
     const drawBaseline = useCallback((ctx, w) => {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(30, 160);
       ctx.lineTo(w - 30, 160);
-      ctx.strokeStyle = "#EDD9DE";
+      ctx.strokeStyle = "#F0D9C4";
       ctx.lineWidth = 1.2;
       ctx.stroke();
       ctx.restore();
     }, []);
 
-    // ── Init canvas once on mount ──
+    // ── Redibuja una firma guardada (dataURL) dentro del canvas ──
+    const drawSavedSignature = useCallback((dataUrl) => {
+      const cv = canvasRef.current;
+      if (!cv || !dataUrl) return;
+      const dpr = window.devicePixelRatio || 1;
+      const W = cv.width / dpr;
+      const H = cv.height / dpr;
+      const ctx = cv.getContext("2d");
+      const img = new Image();
+      img.onload = () => {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        drawBaseline(ctx, W);
+        ctx.drawImage(img, 0, 0, W, H);
+      };
+      img.src = dataUrl;
+    }, [drawBaseline]);
+
+    // ── Inicializa el tamaño del canvas una sola vez al montar ──
     const initCanvas = useCallback(() => {
       const cv = canvasRef.current;
       if (!cv) return;
@@ -1299,23 +1321,23 @@
       const ctx = cv.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
-
       drawBaseline(ctx, W);
 
-      // Restore saved signature if any
+      canvasReady.current = true;
+
+      // Si ya había una firma guardada para esta clienta, la restauramos
       if (form.firmaDataUrl) {
-        const img = new Image();
-        img.onload = () => ctx.drawImage(img, 0, 0, W, H);
-        img.src = form.firmaDataUrl;
+        drawSavedSignature(form.firmaDataUrl);
       }
-    }, [drawBaseline, form.firmaDataUrl]);
+    }, [drawBaseline, drawSavedSignature, form.firmaDataUrl]);
 
     useEffect(() => {
       const timer = setTimeout(initCanvas, 40);
       return () => clearTimeout(timer);
-    }, []); // run only once on mount
+      // eslint-disable-next-line
+    }, []); // solo al montar este panel
 
-    // ── Pointer helpers ──
+    // ── Helpers de posición ──
     const getPos = (e, cv) => {
       const rect = cv.getBoundingClientRect();
       const src  = e.touches ? e.touches[0] : e;
@@ -1323,6 +1345,7 @@
     };
 
     const startDraw = e => {
+      if (locked) return; // bloqueado tras guardar: no se puede dibujar encima
       e.preventDefault();
       isDrawing.current = true;
       pts.current = [];
@@ -1330,16 +1353,17 @@
       const pos = getPos(e, cv);
       lastPos.current = pos;
       pts.current.push(pos);
-      hasStrokes.current = true;
+      setHasInk(true);
 
       const ctx = cv.getContext("2d");
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, 1.2, 0, Math.PI * 2);
-      ctx.fillStyle = "#2A1F2D";
+      ctx.fillStyle = "#3D2B22";
       ctx.fill();
     };
 
     const draw = e => {
+      if (locked) return;
       e.preventDefault();
       if (!isDrawing.current) return;
       const cv  = canvasRef.current;
@@ -1348,7 +1372,7 @@
       pts.current.push(pos);
       const p = pts.current;
 
-      ctx.strokeStyle = "#2A1F2D";
+      ctx.strokeStyle = "#3D2B22";
       ctx.lineWidth   = 2.0;
       ctx.lineCap     = "round";
       ctx.lineJoin    = "round";
@@ -1371,13 +1395,16 @@
     };
 
     const endDraw = e => {
+      if (locked) return;
       e.preventDefault();
       isDrawing.current = false;
       lastPos.current   = null;
       pts.current       = [];
     };
 
+    // ── Limpiar firma: solo posible si NO está bloqueada ──
     const clearCanvas = () => {
+      if (locked) return;
       const cv  = canvasRef.current;
       const ctx = cv.getContext("2d");
       const dpr = window.devicePixelRatio || 1;
@@ -1386,25 +1413,51 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
       drawBaseline(ctx, W);
-      hasStrokes.current = false;
+      setHasInk(false);
       setForm(prev => ({...prev, firmaDataUrl: null, firmadoEn: null}));
     };
 
-    const saveConsent = () => {
-      const cv      = canvasRef.current;
-      const dataUrl = cv.toDataURL("image/png");
-      // Check if canvas is truly empty
-      const blank   = document.createElement("canvas");
-      blank.width   = cv.width; blank.height = cv.height;
-      const isEmpty = !hasStrokes.current || dataUrl === blank.toDataURL("image/png");
-
-      const upd = { ...form, firmaDataUrl: isEmpty ? null : dataUrl, firmadoEn: isEmpty ? null : new Date().toISOString() };
-      setForm(upd);
-      onUpdate({ ...client, consentimiento: upd });
-      showToast(isEmpty ? "Consentimiento guardado (sin firma)" : "✅ Consentimiento firmado y guardado");
+    // ── Re-firmar: desbloquea el panel para volver a firmar desde cero ──
+    const unlockToResign = () => {
+      setLocked(false);
+      setHasInk(false);
+      setForm(prev => ({...prev, firmaDataUrl: null, firmadoEn: null}));
+      setTimeout(() => {
+        const cv = canvasRef.current;
+        if (!cv) return;
+        const dpr = window.devicePixelRatio || 1;
+        const W = cv.width / dpr, H = cv.height / dpr;
+        const ctx = cv.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        drawBaseline(ctx, W);
+      }, 0);
     };
 
-    const isSigned = !!form.firmaDataUrl || hasStrokes.current;
+    const saveConsent = () => {
+      const cv = canvasRef.current;
+      if (!cv) return;
+
+      if (!hasInk) {
+        // Guarda igual los datos médicos/checklist, sin firma
+        const upd = { ...form, firmaDataUrl: null, firmadoEn: null };
+        setForm(upd);
+        onUpdate({ ...client, consentimiento: upd });
+        showToast("Consentimiento guardado (sin firma)");
+        return;
+      }
+
+      const dataUrl = cv.toDataURL("image/png");
+      const now = new Date().toISOString();
+      const upd = { ...form, firmaDataUrl: dataUrl, firmadoEn: now };
+
+      setForm(upd);
+      setLocked(true); // bloquea el canvas para que no se pueda rayar después
+      onUpdate({ ...client, consentimiento: upd });
+      showToast("✅ Consentimiento firmado y guardado");
+    };
+
+    const isSigned = hasInk || !!form.firmaDataUrl;
 
     const CONDITIONS = [
       { k:"lentesContacto", l:"Usa lentes de contacto" },
@@ -1444,20 +1497,20 @@
               <div className="conditions-grid">
                 {CONDITIONS.map(({k,l}) => (
                   <label key={k} className={`condition-item${form[k]?" checked":""}`}>
-                    <input type="checkbox" checked={form[k]} onChange={setF(k)} style={{flexShrink:0}}/>
+                    <input type="checkbox" checked={form[k]} onChange={setF(k)} disabled={locked} style={{flexShrink:0}}/>
                     <span className="condition-label">{l}</span>
                   </label>
                 ))}
               </div>
               <div style={{marginTop:14,display:"flex",flexDirection:"column",gap:12}}>
                 <Field label="Alergias conocidas (cosméticos, adhesivos, látex, etc.)" id="co-alergia">
-                  <textarea id="co-alergia" className="input-field" value={form.alergias} onChange={setF("alergias")} placeholder="Ej. Alergia al cianoacrilato, sensibilidad al látex, alergia a fragancias…" style={{minHeight:68}}/>
+                  <textarea id="co-alergia" className="input-field" value={form.alergias} onChange={setF("alergias")} disabled={locked} placeholder="Ej. Alergia al cianoacrilato, sensibilidad al látex, alergia a fragancias…" style={{minHeight:68}}/>
                 </Field>
                 <Field label="Otros antecedentes médicos o condiciones relevantes" id="co-ant">
-                  <textarea id="co-ant" className="input-field" value={form.antecedentes} onChange={setF("antecedentes")} placeholder="Ej. Hipertiroidismo, quimioterapia reciente, uso de medicamentos que afecten el cabello o las pestañas…" style={{minHeight:68}}/>
+                  <textarea id="co-ant" className="input-field" value={form.antecedentes} onChange={setF("antecedentes")} disabled={locked} placeholder="Ej. Hipertiroidismo, quimioterapia reciente, uso de medicamentos que afecten el cabello o las pestañas…" style={{minHeight:68}}/>
                 </Field>
                 <Field label="Información adicional" id="co-otros">
-                  <input id="co-otros" className="input-field" value={form.otros} onChange={setF("otros")} placeholder="Cualquier otra información que desee comunicar a la especialista…"/>
+                  <input id="co-otros" className="input-field" value={form.otros} onChange={setF("otros")} disabled={locked} placeholder="Cualquier otra información que desee comunicar a la especialista…"/>
                 </Field>
               </div>
             </div>
@@ -1499,26 +1552,36 @@
             {/* FIRMA */}
             <div className="consent-section" style={{borderBottom:"none",paddingBottom:0,marginBottom:0}}>
               <div className="consent-section-title">🖊️ Firma de la Clienta</div>
-              <p style={{fontSize:12.5,color:"var(--ink-muted)",marginBottom:14,lineHeight:1.6}}>Firme en el espacio indicado a continuación. Una vez guardado el consentimiento, la firma quedará almacenada de forma permanente en la ficha de la clienta.</p>
+              <p style={{fontSize:12.5,color:"var(--ink-muted)",marginBottom:14,lineHeight:1.6}}>
+                {locked
+                  ? "Esta firma ya quedó guardada y el panel está bloqueado para protegerla. Si necesitas tomar una firma nueva, usa el botón \"Firmar de nuevo\"."
+                  : "Firme en el espacio indicado a continuación. Una vez guardado el consentimiento, la firma quedará protegida para que no se borre por accidente."}
+              </p>
 
               <div className="signature-area">
                 <div className="signature-header">
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
                     <span style={{fontSize:16}}>✍️</span>
                     <span style={{fontSize:12,fontWeight:600,color:"var(--ink-soft)"}}>
-                      {isSigned ? "Firma registrada" : "Firme aquí con el dedo o el mouse"}
+                      {locked ? "Firma protegida" : isSigned ? "Firma registrada" : "Firme aquí con el dedo o el mouse"}
                     </span>
                   </div>
-                  <button className="btn-ghost" style={{padding:"6px 14px",fontSize:11.5}} onClick={clearCanvas}>
-                    Limpiar firma
-                  </button>
+                  {!locked ? (
+                    <button className="btn-ghost" style={{padding:"6px 14px",fontSize:11.5}} onClick={clearCanvas}>
+                      Limpiar firma
+                    </button>
+                  ) : (
+                    <button className="btn-ghost" style={{padding:"6px 14px",fontSize:11.5}} onClick={unlockToResign}>
+                      Firmar de nuevo
+                    </button>
+                  )}
                 </div>
 
-                {/* Canvas — NO extra wrappers that could intercept events */}
-                <div className="signature-canvas-wrap">
+                {/* Canvas — bloqueado visualmente y funcionalmente cuando locked=true */}
+                <div className="signature-canvas-wrap" style={locked ? {cursor:"not-allowed"} : undefined}>
                   <canvas
                     ref={canvasRef}
-                    style={{width:"100%", height:"200px", display:"block", cursor:"crosshair", touchAction:"none", userSelect:"none", WebkitUserSelect:"none"}}
+                    style={{width:"100%", height:"200px", display:"block", cursor: locked ? "not-allowed" : "crosshair", touchAction:"none", userSelect:"none", WebkitUserSelect:"none", opacity: locked ? 0.97 : 1}}
                     onMouseDown={startDraw}
                     onMouseMove={draw}
                     onMouseUp={endDraw}
@@ -1530,7 +1593,7 @@
                   {/* Baseline decorative line */}
                   <div className="signature-line"/>
                   {/* Placeholder shown only when empty */}
-                  {!isSigned && (
+                  {!isSigned && !locked && (
                     <div className="signature-placeholder">
                       <div style={{fontSize:24,opacity:.12}}>✍️</div>
                       <p style={{fontSize:11,color:"var(--ink-muted)",opacity:.45,margin:"4px 0 0"}}>Firma aquí</p>
@@ -1539,9 +1602,11 @@
                 </div>
 
                 <div style={{padding:"10px 18px",borderTop:"1px solid var(--border)",background:"var(--blush)",display:"flex",alignItems:"center",gap:8}}>
-                  {isSigned
-                    ? <><span style={{fontSize:14}}>✅</span><span style={{fontSize:12,color:"var(--rose-deep)",fontWeight:600}}>Firma presente{form.firmadoEn ? ` · Guardada el ${formatDate(form.firmadoEn.slice(0,10))}` : " · Pendiente de guardar"}</span></>
-                    : <><span style={{fontSize:14}}>⚠️</span><span style={{fontSize:12,color:"var(--ink-muted)"}}>Sin firma — firme antes de guardar</span></>
+                  {locked
+                    ? <><span style={{fontSize:14}}>🔒</span><span style={{fontSize:12,color:"var(--rose-deep)",fontWeight:600}}>Firma guardada y protegida{form.firmadoEn ? ` · ${formatDate(form.firmadoEn.slice(0,10))}` : ""}</span></>
+                    : isSigned
+                      ? <><span style={{fontSize:14}}>✅</span><span style={{fontSize:12,color:"var(--rose-deep)",fontWeight:600}}>Firma lista · pulsa "Guardar consentimiento" para protegerla</span></>
+                      : <><span style={{fontSize:14}}>⚠️</span><span style={{fontSize:12,color:"var(--ink-muted)"}}>Sin firma — firme antes de guardar</span></>
                   }
                 </div>
               </div>
@@ -1552,8 +1617,8 @@
 
         {/* SAVE BUTTON */}
         <div style={{display:"flex",justifyContent:"flex-end",gap:10}}>
-          <button className="btn-primary" onClick={saveConsent}>
-            <Ico n="check" s={16}/> Guardar consentimiento
+          <button className="btn-primary" onClick={saveConsent} disabled={locked} style={locked ? {opacity:.5,cursor:"not-allowed"} : undefined}>
+            <Ico n="check" s={16}/> {locked ? "Consentimiento guardado" : "Guardar consentimiento"}
           </button>
         </div>
 
@@ -1723,14 +1788,14 @@
       <div className={`apt-card${cancelada?" cancelada":" normal"}`}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <span className="apt-time">{apt.hora}</span>
-          {cancelada && <span style={{fontSize:10,fontWeight:700,color:"var(--danger)",background:"#FDF0F3",padding:"2px 8px",borderRadius:99}}>CANCELADA</span>}
+          {cancelada && <span style={{fontSize:10,fontWeight:700,color:"var(--danger)",background:"#FBEAE0",padding:"2px 8px",borderRadius:99}}>CANCELADA</span>}
         </div>
         <button className="apt-client" onClick={onOpenClient}>{apt.clienteNombre||"Sin clienta"}</button>
         <div className="apt-service">{apt.servicio||catLabel(apt.categoria)}</div>
         {!confirmDel ? (
           <div style={{display:"flex",gap:5,marginTop:7,flexWrap:"wrap"}}>
             {!cancelada && <button className="btn-primary-sm" style={{padding:"4px 9px",fontSize:11}} onClick={onEdit}>Editar</button>}
-            {!cancelada && <button style={{padding:"4px 9px",fontSize:11,borderRadius:7,border:"1.5px solid #F2D0D8",background:"#FDF0F3",color:"var(--danger)",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>onCancel(apt.id)}>Cancelar</button>}
+            {!cancelada && <button style={{padding:"4px 9px",fontSize:11,borderRadius:7,border:"1.5px solid #F0CDB8",background:"#FBEAE0",color:"var(--danger)",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>onCancel(apt.id)}>Cancelar</button>}
             <button style={{padding:"4px 9px",fontSize:11,borderRadius:7,border:"none",background:"transparent",color:"var(--ink-muted)",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setConfirmDel(true)}>Eliminar</button>
           </div>
         ) : (
