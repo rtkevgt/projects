@@ -773,6 +773,49 @@
   function savePhotos(cid, fotos) { return sSet(SK.PHOTOS + cid, fotos); }
   function loadPhotos(cid) { return sGet(SK.PHOTOS + cid, []); }
 
+  /* ── RESPALDO: exportar todo a un archivo descargable ── */
+  function exportBackup(clients, apts) {
+    const clientsWithPhotos = clients.map(c => ({ ...c, fotos: loadPhotos(c.id) }));
+    const backup = {
+      tipo: "respaldo-estudio-lash-designer",
+      version: 1,
+      fecha: new Date().toISOString(),
+      clientes: clientsWithPhotos,
+      citas: apts,
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const fechaArchivo = localDate();
+    a.href = url;
+    a.download = `respaldo-estudio-lash-${fechaArchivo}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ── RESPALDO: leer archivo y devolver los datos ── */
+  function readBackupFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || data.tipo !== "respaldo-estudio-lash-designer" || !Array.isArray(data.clientes)) {
+            reject(new Error("Este archivo no es un respaldo válido del estudio."));
+            return;
+          }
+          resolve(data);
+        } catch (err) {
+          reject(new Error("No se pudo leer el archivo. Asegúrate de que sea el respaldo correcto."));
+        }
+      };
+      reader.onerror = () => reject(new Error("No se pudo abrir el archivo."));
+      reader.readAsText(file);
+    });
+  }
+
   const SERVICE_CATS = [
     { id:"pestanas",   label:"Extensión de pestañas", icon:"👁" },
     { id:"lifting",    label:"Lifting de pestañas",   icon:"✨" },
@@ -797,6 +840,40 @@
   }
 
   function emptyClient() { return { id:uid("cli"), nombre:"", telefono:"", fechaNacimiento:"", observaciones:"", alergias:"", creadoEn:new Date().toISOString(), historial:[], fotos:[] }; }
+
+  // Garantiza que un cliente (venga de donde venga: storage viejo, respaldo editado a mano, etc.)
+  // siempre tenga todos los campos esperados, para que la app nunca truene por datos incompletos.
+  function sanitizeClient(c) {
+    if (!c || typeof c !== "object") return emptyClient();
+    return {
+      id: c.id || uid("cli"),
+      nombre: typeof c.nombre === "string" ? c.nombre : "",
+      telefono: typeof c.telefono === "string" ? c.telefono : "",
+      fechaNacimiento: typeof c.fechaNacimiento === "string" ? c.fechaNacimiento : "",
+      observaciones: typeof c.observaciones === "string" ? c.observaciones : "",
+      alergias: typeof c.alergias === "string" ? c.alergias : "",
+      creadoEn: c.creadoEn || new Date().toISOString(),
+      historial: Array.isArray(c.historial) ? c.historial : [],
+      fotos: Array.isArray(c.fotos) ? c.fotos : [],
+      otrosServicios: Array.isArray(c.otrosServicios) ? c.otrosServicios : [],
+      consentimiento: c.consentimiento && typeof c.consentimiento === "object" ? c.consentimiento : undefined,
+    };
+  }
+
+  function sanitizeAppointment(a) {
+    if (!a || typeof a !== "object") return null;
+    return {
+      id: a.id || uid("apt"),
+      clienteId: typeof a.clienteId === "string" ? a.clienteId : "",
+      clienteNombre: typeof a.clienteNombre === "string" ? a.clienteNombre : "",
+      fecha: typeof a.fecha === "string" ? a.fecha : localDate(),
+      hora: typeof a.hora === "string" ? a.hora : "10:00 AM",
+      categoria: typeof a.categoria === "string" ? a.categoria : "pestanas",
+      servicio: typeof a.servicio === "string" ? a.servicio : "",
+      estado: ["pendiente","confirmada","completada","cancelada"].includes(a.estado) ? a.estado : "pendiente",
+      notas: typeof a.notas === "string" ? a.notas : "",
+    };
+  }
   function emptyEntry()  { return { id:uid("h"), fecha:localDate(), categoria:"pestanas", servicio:"", tipoPestanas:"", curvatura:"", grosor:"", longitud:"", tecnica:"", mapping:"", productos:"", tiempoMinutos:"", precio:"", observaciones:"", retoque:"", retiro:"" }; }
   function emptyApt()    { return { id:uid("apt"), clienteId:"", clienteNombre:"", fecha:localDate(), hora:"10:00 AM", categoria:"pestanas", servicio:"", estado:"pendiente", notas:"" }; }
 
@@ -847,6 +924,9 @@
       case "chR":     return <svg {...p}><polyline points="9 18 15 12 9 6"/></svg>;
       case "clock":   return <svg {...p}><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>;
       case "doc":     return <svg {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>;
+      case "lock":    return <svg {...p}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+      case "download":return <svg {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+      case "upload":  return <svg {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
       default: return null;
     }
   };
@@ -888,8 +968,15 @@
     const [selId, setSelId]     = useState(null);
     const [loading, setLoading] = useState(true);
     const [toast, setToast]     = useState(null);
+    const [showBackup, setShowBackup] = useState(false);
 
-    useEffect(() => { setClients(sGet(SK.CLIENTS, [])); setApts(sGet(SK.APTS, [])); setLoading(false); }, []);
+    useEffect(() => {
+      const rawClients = sGet(SK.CLIENTS, []);
+      const rawApts = sGet(SK.APTS, []);
+      setClients(Array.isArray(rawClients) ? rawClients.map(sanitizeClient) : []);
+      setApts(Array.isArray(rawApts) ? rawApts.map(sanitizeAppointment).filter(Boolean) : []);
+      setLoading(false);
+    }, []);
 
     const showToast = useCallback(msg => { setToast(msg); setTimeout(() => setToast(null), 2600); }, []);
 
@@ -906,6 +993,24 @@
       if (r === "quota") showToast("⚠️ Espacio lleno.");
       else if (!r) showToast("Error al guardar.");
       setApts(next);
+    }, [showToast]);
+
+    const handleRestore = useCallback((data) => {
+      // Sanitizar cada cliente y cita: si el archivo fue editado a mano o viene
+      // de una versión anterior, esto evita que falten campos y la app se rompa.
+      const clientesSanitizados = (Array.isArray(data.clientes) ? data.clientes : []).map(sanitizeClient);
+      const aptsSanitizadas = (Array.isArray(data.citas) ? data.citas : []).map(sanitizeAppointment).filter(Boolean);
+
+      // Restaurar clientes (guardando sus fotos por separado, como hace el resto de la app)
+      const clientsClean = clientesSanitizados.map(c => {
+        if (c.fotos && c.fotos.length) savePhotos(c.id, c.fotos);
+        return { ...c, fotos: [] };
+      });
+      sSet(SK.CLIENTS, clientsClean);
+      sSet(SK.APTS, aptsSanitizadas);
+      setClients(clientesSanitizados); // en memoria sí puede llevar fotos temporalmente
+      setApts(aptsSanitizadas);
+      showToast("✅ Respaldo restaurado con éxito");
     }, [showToast]);
 
     const selClient = useMemo(() => clients.find(c => c.id === selId) || null, [clients, selId]);
@@ -932,10 +1037,32 @@
               ))}
             </nav>
             <div className="sidebar-footer">
+              <button
+                onClick={() => setShowBackup(true)}
+                style={{
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+                  width:"100%", padding:"9px 12px", borderRadius:10,
+                  border:"1px solid rgba(255,255,255,.25)", background:"rgba(255,255,255,.08)",
+                  color:"rgba(255,255,255,.85)", fontSize:11.5, fontWeight:600,
+                  cursor:"pointer", marginBottom:12, transition:"all .18s"
+                }}
+              >
+                <Ico n="lock" s={13}/> Respaldo de datos
+              </button>
               <p className="sidebar-footer-text">© 2025 Ángela López</p>
             </div>
           </div>
         </aside>
+
+        {showBackup && (
+          <BackupModal
+            clients={clients}
+            apts={apts}
+            onClose={() => setShowBackup(false)}
+            onRestore={handleRestore}
+            showToast={showToast}
+          />
+        )}
 
         <main className="main-content">
           {view === "clientes" && <ClientList clients={clients} onOpen={openClient} onCreate={nc => { const next=[nc,...clients]; saveClients(next); showToast("✨ Ficha creada"); openClient(nc.id); }}/>}
@@ -1856,10 +1983,10 @@
           <Field label="Fecha" id="ap-f"><input id="ap-f" type="date" className="input-field" value={form.fecha} onChange={set("fecha")}/></Field>
           <Field label="Hora" id="ap-h" full>
             <div style={{display:"flex",gap:8}}>
-              <select className="input-field" style={{flex:1}} value={form.hora.split(":")[0]||"10"} onChange={e=>{const [,min,ampm]=(form.hora.match(/(\d+):(\d+) (AM|PM)/)||["","10","00","AM"]);setForm(p=>({...p,hora:`${e.target.value}:${min||"00"} ${ampm||"AM"}`}))}}>
+              <select className="input-field" style={{flex:1}} value={form.hora.split(":")[0]||"10"} onChange={e=>{const [,,min,ampm]=(form.hora.match(/(\d+):(\d+) (AM|PM)/)||["","10","00","AM"]);setForm(p=>({...p,hora:`${e.target.value}:${min||"00"} ${ampm||"AM"}`}))}}>
                 {["1","2","3","4","5","6","7","8","9","10","11","12"].map(h=><option key={h} value={h}>{h}</option>)}
               </select>
-              <select className="input-field" style={{flex:1}} value={(form.hora.match(/:(\d+)/)||[,"00"])[1]} onChange={e=>{const [h,,ampm]=(form.hora.match(/(\d+):\d+ (AM|PM)/)||["","10","AM"]);setForm(p=>({...p,hora:`${h||"10"}:${e.target.value} ${ampm||"AM"}`}))}}>
+              <select className="input-field" style={{flex:1}} value={(form.hora.match(/:(\d+)/)||[,"00"])[1]} onChange={e=>{const [,h,ampm]=(form.hora.match(/(\d+):\d+ (AM|PM)/)||["","10","AM"]);setForm(p=>({...p,hora:`${h||"10"}:${e.target.value} ${ampm||"AM"}`}))}}>
                 {["00","05","10","15","20","25","30","35","40","45","50","55"].map(m=><option key={m} value={m}>{m}</option>)}
               </select>
               <select className="input-field" style={{flex:1}} value={(form.hora.match(/(AM|PM)/)||["AM"])[0]} onChange={e=>{const [h,min]=(form.hora.match(/(\d+):(\d+)/)||["","10","00"]).slice(1);setForm(p=>({...p,hora:`${h||"10"}:${min||"00"} ${e.target.value}`}))}}>
@@ -1875,6 +2002,99 @@
           <button className="btn-ghost" onClick={onClose}>Cancelar</button>
           <button className="btn-primary" onClick={handleConfirm}><Ico n="check" s={15}/> Confirmar cita</button>
         </div>
+      </Modal>
+    );
+  }
+
+  /* ══════ RESPALDO DE DATOS ══════ */
+  function BackupModal({ clients, apts, onClose, onRestore, showToast }) {
+    const fileRef = useRef(null);
+    const [confirmRestore, setConfirmRestore] = useState(null); // datos leídos, pendientes de confirmar
+    const [error, setError] = useState("");
+
+    const handleDownload = () => {
+      exportBackup(clients, apts);
+      showToast("📥 Respaldo descargado");
+    };
+
+    const handleFileSelect = async (file) => {
+      setError("");
+      try {
+        const data = await readBackupFile(file);
+        setConfirmRestore(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    const confirmAndRestore = () => {
+      onRestore(confirmRestore);
+      setConfirmRestore(null);
+      onClose();
+    };
+
+    return (
+      <Modal onClose={onClose} title="Respaldo de datos">
+        {!confirmRestore ? (
+          <>
+            <div style={{display:"flex",flexDirection:"column",gap:20}}>
+              {/* DESCARGAR */}
+              <div style={{background:"var(--blush)",border:"1.5px solid var(--border)",borderRadius:"var(--radius-md)",padding:"18px 20px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                  <Ico n="download" s={16}/>
+                  <strong style={{fontSize:14}}>Descargar respaldo</strong>
+                </div>
+                <p style={{fontSize:12.5,color:"var(--ink-soft)",lineHeight:1.6,marginBottom:14}}>
+                  Guarda un archivo con todas tus fichas, historial, citas y fotos. Si pierdes el celular o cambias de equipo, este archivo te permite recuperar todo.
+                </p>
+                <button className="btn-primary" style={{width:"100%",justifyContent:"center"}} onClick={handleDownload}>
+                  <Ico n="download" s={15}/> Descargar ahora
+                </button>
+                <p style={{fontSize:11,color:"var(--ink-muted)",marginTop:10,lineHeight:1.5}}>
+                  💡 Guarda este archivo en un lugar seguro: correo, Google Drive, o donde tú prefieras. Hazlo cada cierto tiempo para mantenerlo actualizado.
+                </p>
+              </div>
+
+              {/* RESTAURAR */}
+              <div style={{background:"var(--blush)",border:"1.5px solid var(--border)",borderRadius:"var(--radius-md)",padding:"18px 20px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                  <Ico n="upload" s={16}/>
+                  <strong style={{fontSize:14}}>Restaurar respaldo</strong>
+                </div>
+                <p style={{fontSize:12.5,color:"var(--ink-soft)",lineHeight:1.6,marginBottom:14}}>
+                  Si tienes un archivo de respaldo guardado, súbelo aquí para traer de vuelta todas tus fichas, citas y fotos.
+                </p>
+                <button className="btn-ghost" style={{width:"100%",justifyContent:"center"}} onClick={()=>fileRef.current?.click()}>
+                  <Ico n="upload" s={15}/> Seleccionar archivo de respaldo
+                </button>
+                <input ref={fileRef} type="file" accept=".json,application/json" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0]){handleFileSelect(e.target.files[0]);e.target.value="";}}}/>
+                {error && <p style={{fontSize:12.5,color:"var(--danger)",marginTop:10}}>{error}</p>}
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-ghost" onClick={onClose}>Cerrar</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{padding:"4px 0"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                <span style={{fontSize:24}}>⚠️</span>
+                <strong style={{fontSize:15,color:"var(--charcoal)"}}>Confirmar restauración</strong>
+              </div>
+              <p style={{fontSize:13.5,color:"var(--ink-soft)",lineHeight:1.65,marginBottom:14}}>
+                Este archivo contiene <strong>{confirmRestore.clientes.length} ficha(s)</strong> y <strong>{(confirmRestore.citas||[]).length} cita(s)</strong>, guardado el {new Date(confirmRestore.fecha).toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"})}.
+              </p>
+              <p style={{fontSize:13.5,color:"var(--danger)",lineHeight:1.65,background:"#FDF0F5",border:"1px solid var(--blush-mid)",borderRadius:"var(--radius-sm)",padding:"12px 14px"}}>
+                Al restaurar, <strong>se reemplazarán todas las fichas y citas actuales</strong> por las de este respaldo. Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-ghost" onClick={()=>setConfirmRestore(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={confirmAndRestore}><Ico n="check" s={15}/> Sí, restaurar y reemplazar</button>
+            </div>
+          </>
+        )}
       </Modal>
     );
   }
