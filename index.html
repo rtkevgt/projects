@@ -18,9 +18,6 @@
       getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
       onSnapshot, query, orderBy, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC6GiPMOOzS2h0-WEtYwHKD905ztJVNmzE",
@@ -33,13 +30,11 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
     window.__firebase = {
-      db, auth,
+      db,
       collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
       onSnapshot, query, orderBy, serverTimestamp,
-      signInWithEmailAndPassword, signOut, onAuthStateChanged,
     };
     window.__firebaseReady = true;
     window.dispatchEvent(new Event("firebase-ready"));
@@ -858,21 +853,6 @@
     await deleteDoc(doc(db, "requests", requestId));
   }
 
-  async function fsLogin(email, password) {
-    const { auth, signInWithEmailAndPassword } = fb();
-    await signInWithEmailAndPassword(auth, email, password);
-  }
-
-  async function fsLogout() {
-    const { auth, signOut } = fb();
-    await signOut(auth);
-  }
-
-  function fsWatchAuth(callback) {
-    const { auth, onAuthStateChanged } = fb();
-    return onAuthStateChanged(auth, callback);
-  }
-
   // Fotos: se siguen guardando en localStorage del dispositivo de Ángela por su peso.
   const SK = { PHOTOS: "angela:photos:" };
   function sGet(key, fb) { try { const r = localStorage.getItem(key); return r === null ? fb : JSON.parse(r); } catch { return fb; } }
@@ -1081,8 +1061,6 @@
     const [showBackup, setShowBackup] = useState(false);
 
     const [firebaseReady, setFirebaseReady] = useState(!!window.__firebaseReady);
-    const [authUser, setAuthUser]           = useState(undefined);
-    const [showLogin, setShowLogin]         = useState(false);
 
     useEffect(() => {
       if (firebaseReady) return;
@@ -1091,16 +1069,12 @@
       return () => window.removeEventListener("firebase-ready", handler);
     }, [firebaseReady]);
 
-    useEffect(() => {
-      if (!firebaseReady) return;
-      const unsub = fsWatchAuth(user => setAuthUser(user || null));
-      return unsub;
-    }, [firebaseReady]);
-
     const showToast = useCallback(msg => { setToast(msg); setTimeout(() => setToast(null), 2600); }, []);
 
+    // Esta app ahora es 100% privada (uso exclusivo de Ángela): en cuanto Firebase está listo,
+    // se sincronizan clientas, citas y solicitudes directamente, sin pantalla pública ni login.
     useEffect(() => {
-      if (!firebaseReady || !authUser) { setLoading(false); return; }
+      if (!firebaseReady) { return; }
       setLoading(true);
       const { db, collection, onSnapshot } = fb();
 
@@ -1121,17 +1095,7 @@
       }, err => console.error(err));
 
       return () => { unsubClients(); unsubApts(); unsubReq(); };
-    }, [firebaseReady, authUser, showToast]);
-
-    const [publicApts, setPublicApts] = useState([]);
-    useEffect(() => {
-      if (!firebaseReady) return;
-      const { db, collection, onSnapshot } = fb();
-      const unsub = onSnapshot(collection(db, "appointments"), snap => {
-        setPublicApts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, err => console.error(err));
-      return unsub;
-    }, [firebaseReady]);
+    }, [firebaseReady, showToast]);
 
     const updateOneClient = useCallback(async (updated) => {
       try {
@@ -1183,7 +1147,7 @@
         let clienteNombre = request.clienteNombre;
 
         if (!clienteId) {
-          const nuevo = { id: uid("cli"), nombre: request.clienteNombre, telefono: request.telefono || "", fechaNacimiento: "", observaciones: "", alergias: "", creadoEn: new Date().toISOString(), historial: [], fotos: [] };
+          const nuevo = { id: uid("cli"), nombre: request.clienteNombre, telefono: request.telefono || "", observaciones: "", alergias: "", creadoEn: new Date().toISOString(), historial: [], fotos: [] };
           await fsSaveClient(nuevo);
           clienteId = nuevo.id;
         }
@@ -1212,12 +1176,7 @@
     const selClient = useMemo(() => clients.find(c => c.id === selId) || null, [clients, selId]);
     const openClient = id => { setSelId(id); setView("ficha"); };
 
-    const handleLogout = useCallback(async () => {
-      try { await fsLogout(); setView("clientes"); showToast("Sesión cerrada"); }
-      catch (e) { console.error(e); }
-    }, [showToast]);
-
-    if (!firebaseReady || authUser === undefined) {
+    if (!firebaseReady || loading) {
       return (
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100vh",background:"var(--pearl)",gap:14}}>
           <div style={{fontFamily:"'Dancing Script',cursive",fontSize:52,color:"var(--gold)",textShadow:"0 2px 12px rgba(212,175,122,.4)"}}>AL</div>
@@ -1225,36 +1184,6 @@
         </div>
       );
     }
-
-    if (!authUser) {
-      return (
-        <>
-          <PublicBooking
-            existingAppointments={publicApts}
-            onSubmitted={() => showToast("✅ Tu solicitud fue enviada. Ángela la confirmará pronto.")}
-            onOpenLogin={() => setShowLogin(true)}
-          />
-          {showLogin && (
-            <AdminLoginModal
-              onClose={() => setShowLogin(false)}
-              onLogin={async (email, pass) => {
-                await fsLogin(email, pass);
-                setShowLogin(false);
-                showToast("✨ Bienvenida, Ángela");
-              }}
-            />
-          )}
-          {toast && <div className="toast">{toast}</div>}
-        </>
-      );
-    }
-
-    if (loading) return (
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100vh",background:"var(--pearl)",gap:14}}>
-        <div style={{fontFamily:"'Dancing Script',cursive",fontSize:52,color:"var(--gold)",textShadow:"0 2px 12px rgba(212,175,122,.4)"}}>AL</div>
-        <p style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:"var(--ink-soft)",letterSpacing:2,textTransform:"uppercase"}}>Cargando tu panel…</p>
-      </div>
-    );
 
     const pendingCount = requests.length;
 
@@ -1283,22 +1212,10 @@
                   width:"100%", padding:"9px 12px", borderRadius:10,
                   border:"1px solid rgba(255,255,255,.25)", background:"rgba(255,255,255,.08)",
                   color:"rgba(255,255,255,.85)", fontSize:11.5, fontWeight:600,
-                  cursor:"pointer", marginBottom:10, transition:"all .18s"
-                }}
-              >
-                <Ico n="lock" s={13}/> Respaldo de datos
-              </button>
-              <button
-                onClick={handleLogout}
-                style={{
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-                  width:"100%", padding:"9px 12px", borderRadius:10,
-                  border:"1px solid rgba(255,255,255,.15)", background:"transparent",
-                  color:"rgba(255,255,255,.6)", fontSize:11.5, fontWeight:600,
                   cursor:"pointer", marginBottom:12, transition:"all .18s"
                 }}
               >
-                <Ico n="logout" s={13}/> Cerrar sesión
+                <Ico n="lock" s={13}/> Respaldo de datos
               </button>
               <p className="sidebar-footer-text">© 2025 Ángela López</p>
             </div>
@@ -1399,7 +1316,6 @@
         <div className="form-grid">
           <Field label="Nombre completo *" id="nc-n"><input id="nc-n" className="input-field" value={form.nombre} onChange={set("nombre")} autoFocus placeholder="Ej. María González"/></Field>
           <Field label="Teléfono" id="nc-t"><input id="nc-t" className="input-field" value={form.telefono} onChange={set("telefono")} placeholder="Ej. 0412-1234567"/></Field>
-          <Field label="Fecha de nacimiento" id="nc-d"><input id="nc-d" type="date" className="input-field" value={form.fechaNacimiento} onChange={set("fechaNacimiento")}/></Field>
           <Field label="Alergias / contraindicaciones" id="nc-a"><input id="nc-a" className="input-field" value={form.alergias} onChange={set("alergias")} placeholder="Ej. Alergia al pegamento"/></Field>
           <Field label="Observaciones generales" id="nc-o" full><textarea id="nc-o" className="input-field" value={form.observaciones} onChange={set("observaciones")} placeholder="Detalles importantes…"/></Field>
         </div>
@@ -1420,7 +1336,6 @@
           <Field label="Nombre" id="ec-n"><input id="ec-n" className="input-field" value={form.nombre} onChange={set("nombre")} autoFocus/></Field>
           <Field label="Teléfono" id="ec-t"><input id="ec-t" className="input-field" value={form.telefono} onChange={set("telefono")}/></Field>
           <Field label="Alergias" id="ec-a"><input id="ec-a" className="input-field" value={form.alergias} onChange={set("alergias")}/></Field>
-          <Field label="Fecha de nacimiento" id="ec-d"><input id="ec-d" type="date" className="input-field" value={form.fechaNacimiento} onChange={set("fechaNacimiento")}/></Field>
           <Field label="Observaciones" id="ec-o" full><textarea id="ec-o" className="input-field" value={form.observaciones} onChange={set("observaciones")}/></Field>
         </div>
         <div className="modal-actions">
@@ -1484,7 +1399,7 @@
             <p className="panel-label">Observaciones generales</p>
             <div className="gold-divider" style={{margin:"0 0 14px"}}/>
             <p style={{fontSize:14.5,lineHeight:1.7,color:"var(--ink)"}}>{client.observaciones||"Sin observaciones registradas."}</p>
-            {client.fechaNacimiento && <p style={{marginTop:14,fontSize:13,color:"var(--ink-muted)"}}>🎂 Nacimiento: <strong style={{color:"var(--ink)"}}>{formatDate(client.fechaNacimiento)}</strong></p>}
+
           </div>
         )}
 
@@ -2364,233 +2279,6 @@
     );
   }
 
-  /* ══════ RESERVA PÚBLICA DE CITAS ══════ */
-  const HORAS_DISPONIBLES = [
-    "9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM",
-    "12:00 PM","12:30 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM",
-    "3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM","5:30 PM","6:00 PM",
-  ];
-
-  function PublicBooking({ existingAppointments, onSubmitted, onOpenLogin }) {
-    const [step, setStep] = useState(1);
-    const [fecha, setFecha] = useState(() => {
-      const d = new Date(); d.setDate(d.getDate() + 1);
-      return dateKey(d);
-    });
-    const [hora, setHora] = useState("");
-    const [categoria, setCategoria] = useState("pestanas");
-    const [servicio, setServicio] = useState("");
-    const [nombre, setNombre] = useState("");
-    const [telefono, setTelefono] = useState("");
-    const [notas, setNotas] = useState("");
-    const [sending, setSending] = useState(false);
-    const [error, setError] = useState("");
-
-    const horasOcupadas = useMemo(() => {
-      return new Set(
-        existingAppointments
-          .filter(a => a.fecha === fecha && a.estado !== "cancelada")
-          .map(a => a.hora)
-      );
-    }, [existingAppointments, fecha]);
-
-    const minDate = dateKey(new Date());
-
-    const handleContinuar = () => {
-      if (!hora) { setError("Selecciona un horario disponible."); return; }
-      setError("");
-      setStep(2);
-    };
-
-    const handleEnviar = async () => {
-      if (!nombre.trim()) { setError("Escribe tu nombre completo."); return; }
-      if (!telefono.trim()) { setError("Escribe un teléfono de contacto."); return; }
-      setError("");
-      setSending(true);
-      try {
-        await fsCreateRequest({
-          clienteId: "",
-          clienteNombre: nombre.trim(),
-          telefono: telefono.trim(),
-          fecha, hora, categoria,
-          servicio: servicio.trim(),
-          notas: notas.trim(),
-          estado: "pendiente_aprobacion",
-        });
-        setStep(3);
-        onSubmitted && onSubmitted();
-      } catch (e) {
-        console.error(e);
-        setError("No se pudo enviar la solicitud. Intenta de nuevo.");
-      } finally {
-        setSending(false);
-      }
-    };
-
-    return (
-      <div style={{ minHeight:"100vh", background:"var(--pearl)", display:"flex", flexDirection:"column" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 24px", borderBottom:"1.5px solid var(--border)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontFamily:"'Dancing Script',cursive", fontSize:28, color:"var(--gold)" }}>AL</span>
-            <div>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:13, fontWeight:700, color:"var(--charcoal)" }}>Ángela López</div>
-              <div style={{ fontSize:9.5, letterSpacing:1.5, textTransform:"uppercase", color:"var(--ink-muted)" }}>Estudio Lash Designer</div>
-            </div>
-          </div>
-          <button onClick={onOpenLogin} style={{ background:"none", border:"1.5px solid var(--border)", borderRadius:10, padding:"7px 14px", fontSize:11.5, color:"var(--ink-muted)", cursor:"pointer", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}>
-            <Ico n="lock" s={13}/> Ángela
-          </button>
-        </div>
-
-        <div style={{ flex:1, padding:"32px 20px 60px", maxWidth:480, margin:"0 auto", width:"100%" }}>
-          {step === 1 && (
-            <>
-              <p style={{ fontSize:10.5, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--gold-deep)", marginBottom:6 }}>Agenda tu cita</p>
-              <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:700, color:"var(--charcoal)", marginBottom:24 }}>¿Cuándo te gustaría venir?</h1>
-
-              <div className="field" style={{marginBottom:18}}>
-                <label className="field-label">Fecha</label>
-                <input type="date" className="input-field" value={fecha} min={minDate} onChange={e => { setFecha(e.target.value); setHora(""); }} />
-              </div>
-
-              <div className="field" style={{marginBottom:18}}>
-                <label className="field-label">Categoría de servicio</label>
-                <select className="input-field" value={categoria} onChange={e => setCategoria(e.target.value)}>
-                  {SERVICE_CATS.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
-                </select>
-              </div>
-
-              <label className="field-label" style={{marginBottom:10, display:"block"}}>Horarios disponibles ese día</label>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8, marginBottom:18 }}>
-                {HORAS_DISPONIBLES.map(h => {
-                  const ocupado = horasOcupadas.has(h);
-                  const selected = hora === h;
-                  return (
-                    <button
-                      key={h}
-                      disabled={ocupado}
-                      onClick={() => setHora(h)}
-                      style={{
-                        padding:"10px 6px", borderRadius:10, fontSize:12.5, fontWeight:600, cursor: ocupado ? "not-allowed" : "pointer",
-                        border: selected ? "1.5px solid var(--rose-deep)" : "1.5px solid var(--border)",
-                        background: ocupado ? "var(--blush)" : (selected ? "var(--rose-deep)" : "var(--white)"),
-                        color: ocupado ? "var(--ink-muted)" : (selected ? "#fff" : "var(--ink)"),
-                        textDecoration: ocupado ? "line-through" : "none",
-                        opacity: ocupado ? 0.55 : 1,
-                        transition:"all .15s",
-                      }}
-                    >
-                      {h}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {error && <p style={{fontSize:12.5, color:"var(--danger)", marginBottom:14}}>{error}</p>}
-
-              <button className="btn-primary" style={{width:"100%", justifyContent:"center"}} onClick={handleContinuar}>
-                Continuar <Ico n="chR" s={15}/>
-              </button>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <button className="back-btn" onClick={() => setStep(1)}><Ico n="back" s={15}/> Cambiar fecha u hora</button>
-              <p style={{ fontSize:10.5, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--gold-deep)", marginBottom:6 }}>Tus datos</p>
-              <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:"var(--charcoal)", marginBottom:6 }}>Cuéntanos quién eres</h1>
-              <p style={{ fontSize:13, color:"var(--ink-muted)", marginBottom:22 }}>
-                {formatDateLong(fecha)} · {hora} · {catLabel(categoria)}
-              </p>
-
-              <div className="field" style={{marginBottom:14}}>
-                <label className="field-label">Nombre completo *</label>
-                <input className="input-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. María González" autoFocus />
-              </div>
-              <div className="field" style={{marginBottom:14}}>
-                <label className="field-label">Teléfono de contacto *</label>
-                <input className="input-field" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="Ej. 0412-1234567" />
-              </div>
-              <div className="field" style={{marginBottom:14}}>
-                <label className="field-label">Servicio deseado (opcional)</label>
-                <input className="input-field" value={servicio} onChange={e => setServicio(e.target.value)} placeholder="Ej. Volumen ruso, lifting…" />
-              </div>
-              <div className="field" style={{marginBottom:20}}>
-                <label className="field-label">Notas adicionales (opcional)</label>
-                <textarea className="input-field" value={notas} onChange={e => setNotas(e.target.value)} placeholder="Alguna preferencia o comentario…" />
-              </div>
-
-              {error && <p style={{fontSize:12.5, color:"var(--danger)", marginBottom:14}}>{error}</p>}
-
-              <button className="btn-primary" style={{width:"100%", justifyContent:"center"}} disabled={sending} onClick={handleEnviar}>
-                {sending ? "Enviando…" : <>Enviar solicitud <Ico n="check" s={15}/></>}
-              </button>
-              <p style={{fontSize:11.5, color:"var(--ink-muted)", textAlign:"center", marginTop:12, lineHeight:1.5}}>
-                Tu cita quedará pendiente hasta que Ángela la confirme.
-              </p>
-            </>
-          )}
-
-          {step === 3 && (
-            <div style={{ textAlign:"center", padding:"40px 10px" }}>
-              <div style={{ fontSize:44, marginBottom:16 }}>✅</div>
-              <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:"var(--charcoal)", marginBottom:10 }}>¡Solicitud enviada!</h1>
-              <p style={{ fontSize:14, color:"var(--ink-soft)", lineHeight:1.6, marginBottom:24 }}>
-                Ángela revisará tu solicitud para <strong>{formatDateLong(fecha)}</strong> a las <strong>{hora}</strong> y te contactará al <strong>{telefono}</strong> para confirmar.
-              </p>
-              <button className="btn-ghost" onClick={() => { setStep(1); setHora(""); setNombre(""); setTelefono(""); setServicio(""); setNotas(""); }}>
-                Solicitar otra cita
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  /* ══════ LOGIN DE ADMINISTRADOR (Ángela) ══════ */
-  function AdminLoginModal({ onClose, onLogin }) {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
-    const handleSubmit = async () => {
-      if (!email.trim() || !password) { setError("Completa ambos campos."); return; }
-      setError("");
-      setLoading(true);
-      try {
-        await onLogin(email.trim(), password);
-      } catch (e) {
-        console.error(e);
-        setError("Correo o contraseña incorrectos.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    return (
-      <Modal onClose={onClose} title="Acceso de Ángela" narrow>
-        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          <div className="field">
-            <label className="field-label">Correo</label>
-            <input className="input-field" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu correo de acceso" autoFocus />
-          </div>
-          <div className="field">
-            <label className="field-label">Contraseña</label>
-            <input className="input-field" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" onKeyDown={e => e.key === "Enter" && handleSubmit()} />
-          </div>
-          {error && <p style={{fontSize:12.5, color:"var(--danger)"}}>{error}</p>}
-        </div>
-        <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
-          <button className="btn-primary" disabled={loading} onClick={handleSubmit}>
-            {loading ? "Entrando…" : <><Ico n="lock" s={15}/> Entrar</>}
-          </button>
-        </div>
-      </Modal>
-    );
-  }
 
   /* ══════ PANEL DE SOLICITUDES PENDIENTES (Ángela) ══════ */
   function RequestsPanel({ requests, onApprove, onReject }) {
