@@ -916,6 +916,14 @@
   const GROSORES   = ["0.03","0.05","0.07","0.10","0.12","0.15","0.18","0.20","0.25"];
   const TECNICAS   = ["Clásicas","2D","3D","Híbrida","Rimel","Rimel Teach","Griegas","Hawaianas","Tecnológico 4D","Tecnológico 5D","Tecnológico 6D","Russian Teach","Wispy","Volumen Ruso","FOXY","Mega Volumen"];
 
+  // Franjas de media hora en las que se puede agendar una cita (usado tanto al agendar
+  // manualmente desde la Agenda como al aprobar solicitudes públicas del catálogo).
+  const HORAS_DIA = [
+    "9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM",
+    "12:00 PM","12:30 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM",
+    "3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM","5:30 PM","6:00 PM",
+  ];
+
   const catLabel = id => SERVICE_CATS.find(c => c.id === id)?.label || "Servicio";
   const catIcon  = id => SERVICE_CATS.find(c => c.id === id)?.icon  || "⭐";
 
@@ -949,20 +957,26 @@
 
   function sanitizeAppointment(a) {
     if (!a || typeof a !== "object") return null;
+    const hora = typeof a.hora === "string" ? a.hora : "10:00 AM";
     return {
       id: a.id || uid("apt"),
       clienteId: typeof a.clienteId === "string" ? a.clienteId : "",
       clienteNombre: typeof a.clienteNombre === "string" ? a.clienteNombre : "",
       fecha: typeof a.fecha === "string" ? a.fecha : localDate(),
-      hora: typeof a.hora === "string" ? a.hora : "10:00 AM",
+      hora,
+      // bloques: todas las franjas de 30 min que ocupa esta cita (para citas largas).
+      // Si no viene definido (citas antiguas), se usa solo la hora de inicio como único bloque.
+      bloques: Array.isArray(a.bloques) && a.bloques.length ? a.bloques.filter(h => typeof h === "string") : [hora],
       categoria: typeof a.categoria === "string" ? a.categoria : "pestanas",
       servicio: typeof a.servicio === "string" ? a.servicio : "",
       estado: ["pendiente","confirmada","completada","cancelada"].includes(a.estado) ? a.estado : "pendiente",
       notas: typeof a.notas === "string" ? a.notas : "",
+      // Info completa de la solicitud original (servicios pedidos, teléfono, etc.) para consulta posterior.
+      solicitudOriginal: a.solicitudOriginal && typeof a.solicitudOriginal === "object" ? a.solicitudOriginal : null,
     };
   }
   function emptyEntry()  { return { id:uid("h"), fecha:localDate(), categoria:"pestanas", servicio:"", tipoPestanas:"", curvatura:"", grosor:"", longitud:"", tecnica:"", mapping:"", productos:"", tiempoMinutos:"", precio:"", observaciones:"", retoque:"", retiro:"" }; }
-  function emptyApt()    { return { id:uid("apt"), clienteId:"", clienteNombre:"", fecha:localDate(), hora:"10:00 AM", categoria:"pestanas", servicio:"", estado:"pendiente", notas:"" }; }
+  function emptyApt()    { return { id:uid("apt"), clienteId:"", clienteNombre:"", fecha:localDate(), hora:"10:00 AM", bloques:["10:00 AM"], categoria:"pestanas", servicio:"", estado:"pendiente", notas:"" }; }
 
   function formatDate(iso) {
     if (!iso) return "";
@@ -1141,7 +1155,7 @@
       } catch (e) { console.error(e); showToast("Error al restaurar el respaldo."); }
     }, [showToast]);
 
-    const approveRequest = useCallback(async (request) => {
+    const approveRequest = useCallback(async (request, bloques) => {
       try {
         let clienteId = request.clienteId;
         let clienteNombre = request.clienteNombre;
@@ -1155,10 +1169,16 @@
         const nuevaCita = sanitizeAppointment({
           id: uid("apt"), clienteId, clienteNombre,
           fecha: request.fecha, hora: request.hora,
+          bloques: bloques && bloques.length ? bloques : [request.hora],
           categoria: request.categoria || "pestanas",
           servicio: request.servicio || "",
           estado: "confirmada",
           notas: request.notas || "",
+          solicitudOriginal: {
+            fecha: request.fecha, hora: request.hora,
+            categoria: request.categoria || "", servicio: request.servicio || "",
+            notas: request.notas || "", telefono: request.telefono || "",
+          },
         });
         await fsSaveAppointment(nuevaCita);
         await fsDeleteRequest(request.id);
@@ -1236,7 +1256,7 @@
           {view === "clientes" && <ClientList clients={clients} onOpen={openClient} onCreate={async nc => { await fsSaveClient(nc); showToast("✨ Ficha creada"); openClient(nc.id); }}/>}
           {view === "ficha" && selClient && <ClientFile client={selClient} onBack={()=>setView("clientes")} onUpdate={updateOneClient} onDelete={deleteOneClient} showToast={showToast}/>}
           {view === "agenda"   && <Agenda apts={apts} clients={clients} onUpdate={saveApts} onDeleteApt={deleteApt} onOpenClient={openClient} showToast={showToast} onCreateClient={async nc=>{await fsSaveClient(nc);showToast("✨ Ficha de "+nc.nombre+" creada");}}/>}
-          {view === "solicitudes" && <RequestsPanel requests={requests} onApprove={approveRequest} onReject={rejectRequest} />}
+          {view === "solicitudes" && <RequestsPanel requests={requests} apts={apts} onApprove={approveRequest} onReject={rejectRequest} />}
         </main>
 
         <nav className="bottom-nav">
@@ -2075,8 +2095,8 @@
             })}
           </div>
         </div>
-        {showNew  && <AptModal clients={clients} initial={{...emptyApt(),fecha:dateKey(cursor)}} onClose={()=>setShowNew(false)} onCreateClient={onCreateClient} onSave={a=>{onUpdate([a]);setShowNew(false);showToast("✨ Cita agendada");}}/>}
-        {editing  && <AptModal clients={clients} initial={editing} editing onClose={()=>setEditing(null)} onCreateClient={onCreateClient} onSave={a=>{onUpdate([a]);setEditing(null);showToast("Cita actualizada");}}/>}
+        {showNew  && <AptModal clients={clients} apts={apts} initial={{...emptyApt(),fecha:dateKey(cursor)}} onClose={()=>setShowNew(false)} onCreateClient={onCreateClient} onSave={a=>{onUpdate([a]);setShowNew(false);showToast("✨ Cita agendada");}}/>}
+        {editing  && <AptModal clients={clients} apts={apts} initial={editing} editing onClose={()=>setEditing(null)} onCreateClient={onCreateClient} onSave={a=>{onUpdate([a]);setEditing(null);showToast("Cita actualizada");}}/>}
       </div>
     );
   }
@@ -2084,10 +2104,14 @@
   function AptCard({ apt, onEdit, onOpenClient, onCancel, onDelete }) {
     const [confirmDel, setConfirmDel] = useState(false);
     const cancelada = apt.estado === "cancelada";
+    const bloques = Array.isArray(apt.bloques) && apt.bloques.length ? apt.bloques : [apt.hora];
+    const rangoHorario = bloques.length > 1
+      ? `${bloques[0]} – ${bloques[bloques.length - 1]}`
+      : bloques[0];
     return (
       <div className={`apt-card${cancelada?" cancelada":" normal"}`}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span className="apt-time">{apt.hora}</span>
+          <span className="apt-time">{rangoHorario}</span>
           {cancelada && <span style={{fontSize:10,fontWeight:700,color:"var(--danger)",background:"#FBEAE0",padding:"2px 8px",borderRadius:99}}>CANCELADA</span>}
         </div>
         <button className="apt-client" onClick={onOpenClient}>{apt.clienteNombre||"Sin clienta"}</button>
@@ -2109,19 +2133,51 @@
     );
   }
 
-  function AptModal({ clients, initial, editing, onClose, onSave, onCreateClient }) {
+  function AptModal({ clients, apts, initial, editing, onClose, onSave, onCreateClient }) {
     const [form, setForm]         = useState(initial);
     const [nuevaNombre, setNuevaNombre] = useState("");
+    const [bloquesElegidos, setBloquesElegidos] = useState(() => new Set(
+      Array.isArray(initial.bloques) && initial.bloques.length ? initial.bloques : [initial.hora]
+    ));
     const set = k => e => setForm(p=>({...p,[k]:e.target.value}));
     const handleClient = e => { const id=e.target.value; const c=clients.find(cl=>cl.id===id); setForm(p=>({...p,clienteId:id,clienteNombre:c?c.nombre:""})); };
 
+    // Horas ocupadas ese día por OTRAS citas (nunca por esta misma, si se está editando)
+    const horasOcupadas = useMemo(() => {
+      const ocupadas = new Set();
+      for (const a of apts) {
+        if (a.id === form.id) continue; // no bloquear contra sí misma al editar
+        if (a.fecha !== form.fecha) continue;
+        if (a.estado === "cancelada") continue;
+        const bloques = Array.isArray(a.bloques) && a.bloques.length ? a.bloques : [a.hora];
+        bloques.forEach(h => ocupadas.add(h));
+      }
+      return ocupadas;
+    }, [apts, form.fecha, form.id]);
+
+    const toggleBloque = (h) => {
+      if (horasOcupadas.has(h)) return;
+      setBloquesElegidos(prev => {
+        const next = new Set(prev);
+        if (next.has(h)) next.delete(h);
+        else next.add(h);
+        return next;
+      });
+    };
+
+    const bloquesOrdenados = useMemo(() => HORAS_DIA.filter(h => bloquesElegidos.has(h)), [bloquesElegidos]);
+    const duracionAprox = bloquesOrdenados.length * 30;
+
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
     const handleConfirm = async () => {
+      if (bloquesOrdenados.length === 0) { setError("Selecciona al menos un horario."); return; }
+      setError("");
       setSaving(true);
       try {
-        let finalForm = {...form};
+        let finalForm = {...form, hora: bloquesOrdenados[0], bloques: bloquesOrdenados};
         if (nuevaNombre.trim() && !form.clienteId) {
-          const newClient = { id:uid("cli"), nombre:nuevaNombre.trim(), telefono:"", fechaNacimiento:"", observaciones:"", alergias:"", creadoEn:new Date().toISOString(), historial:[], fotos:[] };
+          const newClient = { id:uid("cli"), nombre:nuevaNombre.trim(), telefono:"", observaciones:"", alergias:"", creadoEn:new Date().toISOString(), historial:[], fotos:[] };
           if (onCreateClient) await onCreateClient(newClient);
           finalForm = {...finalForm, clienteId:newClient.id, clienteNombre:newClient.nombre};
         }
@@ -2132,7 +2188,7 @@
     };
 
     return (
-      <Modal onClose={onClose} title={editing?"Editar cita":"Nueva cita"}>
+      <Modal onClose={onClose} title={editing?"Editar cita":"Nueva cita"} wide>
         <div className="form-grid">
           {/* CLIENTA EXISTENTE */}
           <Field label="Clienta con ficha" id="ap-cli" full>
@@ -2160,24 +2216,50 @@
             </Field>
           )}
 
-          <Field label="Fecha" id="ap-f"><input id="ap-f" type="date" className="input-field" value={form.fecha} onChange={set("fecha")}/></Field>
-          <Field label="Hora" id="ap-h" full>
-            <div style={{display:"flex",gap:8}}>
-              <select className="input-field" style={{flex:1}} value={form.hora.split(":")[0]||"10"} onChange={e=>{const [,,min,ampm]=(form.hora.match(/(\d+):(\d+) (AM|PM)/)||["","10","00","AM"]);setForm(p=>({...p,hora:`${e.target.value}:${min||"00"} ${ampm||"AM"}`}))}}>
-                {["1","2","3","4","5","6","7","8","9","10","11","12"].map(h=><option key={h} value={h}>{h}</option>)}
-              </select>
-              <select className="input-field" style={{flex:1}} value={(form.hora.match(/:(\d+)/)||[,"00"])[1]} onChange={e=>{const [,h,ampm]=(form.hora.match(/(\d+):\d+ (AM|PM)/)||["","10","AM"]);setForm(p=>({...p,hora:`${h||"10"}:${e.target.value} ${ampm||"AM"}`}))}}>
-                {["00","05","10","15","20","25","30","35","40","45","50","55"].map(m=><option key={m} value={m}>{m}</option>)}
-              </select>
-              <select className="input-field" style={{flex:1}} value={(form.hora.match(/(AM|PM)/)||["AM"])[0]} onChange={e=>{const [h,min]=(form.hora.match(/(\d+):(\d+)/)||["","10","00"]).slice(1);setForm(p=>({...p,hora:`${h||"10"}:${min||"00"} ${e.target.value}`}))}}>
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
+          <Field label="Fecha" id="ap-f" full><input id="ap-f" type="date" className="input-field" value={form.fecha} onChange={e=>{set("fecha")(e); setBloquesElegidos(new Set());}}/></Field>
+
+          <div className="field-full" style={{gridColumn:"1 / -1"}}>
+            <label className="field-label" style={{marginBottom:8, display:"block"}}>
+              ¿Cuánto tiempo va a durar este trabajo?
+            </label>
+            <p style={{ fontSize:11.5, color:"var(--ink-muted)", marginBottom:10, lineHeight:1.5 }}>
+              Toca todas las franjas de media hora que necesites. Quedan bloqueadas para otras clientas ese día.
+            </p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:7, marginBottom:8 }}>
+              {HORAS_DIA.map(h => {
+                const ocupado = horasOcupadas.has(h);
+                const elegido = bloquesElegidos.has(h);
+                return (
+                  <button
+                    key={h}
+                    type="button"
+                    disabled={ocupado}
+                    onClick={() => toggleBloque(h)}
+                    style={{
+                      padding:"9px 4px", borderRadius:9, fontSize:11.5, fontWeight:600, cursor: ocupado ? "not-allowed" : "pointer",
+                      border: elegido ? "1.5px solid var(--rose-deep)" : "1.5px solid var(--border)",
+                      background: ocupado ? "var(--blush-mid)" : (elegido ? "var(--rose-deep)" : "var(--white)"),
+                      color: ocupado ? "var(--ink-muted)" : (elegido ? "#fff" : "var(--ink)"),
+                      textDecoration: ocupado ? "line-through" : "none",
+                      opacity: ocupado ? 0.6 : 1,
+                    }}
+                  >
+                    {h}
+                  </button>
+                );
+              })}
             </div>
-          </Field>
+            {bloquesOrdenados.length > 0 && (
+              <p style={{ fontSize:12, color:"var(--ink-soft)" }}>
+                De <strong>{bloquesOrdenados[0]}</strong> a aprox. <strong>{bloquesOrdenados[bloquesOrdenados.length-1]}</strong> · {duracionAprox >= 60 ? `${Math.floor(duracionAprox/60)}h ${duracionAprox%60 ? duracionAprox%60+"min" : ""}` : `${duracionAprox} min`}
+              </p>
+            )}
+          </div>
+
           <Field label="Servicio" id="ap-s" full><input id="ap-s" className="input-field" value={form.servicio} onChange={set("servicio")} placeholder="Ej. Volumen ruso"/></Field>
           <Field label="Notas" id="ap-n" full><textarea id="ap-n" className="input-field" value={form.notas} onChange={set("notas")} placeholder="Observaciones para la cita…"/></Field>
         </div>
+        {error && <p style={{fontSize:12.5, color:"var(--danger)", padding:"0 28px"}}>{error}</p>}
         <div className="modal-actions">
           <button className="btn-ghost" onClick={onClose}>Cancelar</button>
           <button className="btn-primary" disabled={saving} onClick={handleConfirm}>{saving ? "Guardando…" : <><Ico n="check" s={15}/> Confirmar cita</>}</button>
@@ -2281,17 +2363,22 @@
 
 
   /* ══════ PANEL DE SOLICITUDES PENDIENTES (Ángela) ══════ */
-  function RequestsPanel({ requests, onApprove, onReject }) {
+  function RequestsPanel({ requests, apts, onApprove, onReject }) {
     const [processing, setProcessing] = useState(null);
+    const [approving, setApproving] = useState(null); // solicitud abierta en el modal de aprobación
     const sorted = useMemo(() => [...requests].sort((a,b) => (a.fecha+a.hora).localeCompare(b.fecha+b.hora)), [requests]);
 
-    const handleApprove = async (req) => {
-      setProcessing(req.id);
-      try { await onApprove(req); } finally { setProcessing(null); }
-    };
     const handleReject = async (req) => {
       setProcessing(req.id);
       try { await onReject(req.id); } finally { setProcessing(null); }
+    };
+
+    const handleConfirmApprove = async (req, bloques) => {
+      setProcessing(req.id);
+      try {
+        await onApprove(req, bloques);
+        setApproving(null);
+      } finally { setProcessing(null); }
     };
 
     return (
@@ -2325,8 +2412,8 @@
                 </div>
                 {req.notas && <div className="obs-box" style={{marginTop:0}}>{req.notas}</div>}
                 <div style={{ display:"flex", gap:8, marginTop:6 }}>
-                  <button className="btn-primary-sm" disabled={processing === req.id} onClick={() => handleApprove(req)}>
-                    <Ico n="check" s={14}/> {processing === req.id ? "Procesando…" : "Aprobar y agendar"}
+                  <button className="btn-primary-sm" disabled={processing === req.id} onClick={() => setApproving(req)}>
+                    <Ico n="check" s={14}/> Revisar y aprobar
                   </button>
                   <button className="btn-danger" style={{padding:"8px 16px", fontSize:12.5, borderRadius:8}} disabled={processing === req.id} onClick={() => handleReject(req)}>
                     <Ico n="x" s={14}/> Rechazar
@@ -2336,7 +2423,120 @@
             ))}
           </div>
         )}
+
+        {approving && (
+          <ApproveRequestModal
+            request={approving}
+            apts={apts}
+            processing={processing === approving.id}
+            onClose={() => setApproving(null)}
+            onConfirm={(bloques) => handleConfirmApprove(approving, bloques)}
+          />
+        )}
       </div>
+    );
+  }
+
+  /* ══════ MODAL: revisar solicitud y elegir cuánto tiempo ocupa ══════ */
+  function ApproveRequestModal({ request, apts, processing, onClose, onConfirm }) {
+    // Bloque de inicio sugerido: el que la clienta pidió
+    const [bloquesElegidos, setBloquesElegidos] = useState(() => new Set([request.hora]));
+
+    // Horas ya ocupadas ESE MISMO DÍA por otras citas confirmadas (para no chocar con otra clienta)
+    const horasOcupadas = useMemo(() => {
+      const ocupadas = new Set();
+      for (const a of apts) {
+        if (a.fecha !== request.fecha) continue;
+        if (a.estado === "cancelada") continue;
+        const bloques = Array.isArray(a.bloques) && a.bloques.length ? a.bloques : [a.hora];
+        bloques.forEach(h => ocupadas.add(h));
+      }
+      return ocupadas;
+    }, [apts, request.fecha]);
+
+    const toggleBloque = (h) => {
+      if (horasOcupadas.has(h)) return; // no se puede tocar una hora ya ocupada por otra cita
+      setBloquesElegidos(prev => {
+        const next = new Set(prev);
+        if (next.has(h)) next.delete(h);
+        else next.add(h);
+        return next;
+      });
+    };
+
+    const bloquesOrdenados = useMemo(
+      () => HORAS_DIA.filter(h => bloquesElegidos.has(h)),
+      [bloquesElegidos]
+    );
+
+    const duracionAprox = bloquesOrdenados.length * 30; // minutos, aproximado por bloques de 30 min
+
+    return (
+      <Modal onClose={onClose} title="Revisar solicitud de cita" wide>
+        {/* Resumen legible de lo que la clienta pidió */}
+        <div style={{ background:"var(--blush)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"18px 20px", marginBottom:20 }}>
+          <p style={{ fontSize:10.5, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--gold-deep)", marginBottom:10 }}>Lo que pidió la clienta</p>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, fontSize:13.5 }}>
+            <div><strong>Nombre:</strong> {request.clienteNombre}</div>
+            <div><strong>Teléfono:</strong> {request.telefono || "—"}</div>
+            <div><strong>Fecha pedida:</strong> {formatDateLong(request.fecha)}</div>
+            <div><strong>Hora pedida:</strong> {request.hora}</div>
+            <div style={{gridColumn:"1 / -1"}}><strong>Categoría:</strong> {catIcon(request.categoria)} {catLabel(request.categoria)}</div>
+            {request.servicio && <div style={{gridColumn:"1 / -1"}}><strong>Servicio(s) solicitado(s):</strong> {request.servicio}</div>}
+            {request.notas && <div style={{gridColumn:"1 / -1"}}><strong>Notas de la clienta:</strong> {request.notas}</div>}
+          </div>
+        </div>
+
+        {/* Selector de bloques de horario */}
+        <p className="field-label" style={{marginBottom:6, display:"block"}}>
+          ¿Cuánto tiempo vas a ocupar con esta clienta el {formatDate(request.fecha)}?
+        </p>
+        <p style={{ fontSize:12, color:"var(--ink-muted)", marginBottom:12, lineHeight:1.5 }}>
+          Toca todas las franjas de media hora que va a durar el trabajo completo. Esas horas quedarán bloqueadas para cualquier otra clienta ese día, aunque la cita sea dentro de varios meses.
+        </p>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:10 }}>
+          {HORAS_DIA.map(h => {
+            const ocupado = horasOcupadas.has(h);
+            const elegido = bloquesElegidos.has(h);
+            return (
+              <button
+                key={h}
+                disabled={ocupado}
+                onClick={() => toggleBloque(h)}
+                style={{
+                  padding:"10px 4px", borderRadius:9, fontSize:12, fontWeight:600, cursor: ocupado ? "not-allowed" : "pointer",
+                  border: elegido ? "1.5px solid var(--rose-deep)" : "1.5px solid var(--border)",
+                  background: ocupado ? "var(--blush-mid)" : (elegido ? "var(--rose-deep)" : "var(--white)"),
+                  color: ocupado ? "var(--ink-muted)" : (elegido ? "#fff" : "var(--ink)"),
+                  textDecoration: ocupado ? "line-through" : "none",
+                  opacity: ocupado ? 0.6 : 1,
+                  transition:"all .15s",
+                }}
+              >
+                {h}
+              </button>
+            );
+          })}
+        </div>
+
+        <p style={{ fontSize:12.5, color:"var(--ink-soft)", marginBottom:4 }}>
+          {bloquesOrdenados.length === 0
+            ? "Selecciona al menos un horario."
+            : <>Ocupado desde <strong>{bloquesOrdenados[0]}</strong> hasta aproximadamente <strong>{bloquesOrdenados[bloquesOrdenados.length-1]}</strong> · {duracionAprox >= 60 ? `${Math.floor(duracionAprox/60)}h ${duracionAprox%60 ? duracionAprox%60+"min" : ""}` : `${duracionAprox} min`}</>
+          }
+        </p>
+
+        <div className="modal-actions">
+          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button
+            className="btn-primary"
+            disabled={processing || bloquesOrdenados.length === 0}
+            onClick={() => onConfirm(bloquesOrdenados)}
+          >
+            {processing ? "Agendando…" : <><Ico n="check" s={15}/> Confirmar y agendar</>}
+          </button>
+        </div>
+      </Modal>
     );
   }
 
