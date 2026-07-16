@@ -951,7 +951,12 @@
       historial: Array.isArray(c.historial) ? c.historial : [],
       fotos: Array.isArray(c.fotos) ? c.fotos : [],
       otrosServicios: Array.isArray(c.otrosServicios) ? c.otrosServicios : [],
-      consentimiento: c.consentimiento && typeof c.consentimiento === "object" ? c.consentimiento : undefined,
+      // OJO: nunca usar "undefined" aquí. Firestore rechaza con error cualquier
+      // escritura que contenga un campo undefined (aunque sea uno solo), y como
+      // este objeto se vuelve a guardar completo en cada acción (registrar
+      // servicio, editar ficha, subir foto, etc.), eso rompía TODOS los guardados
+      // de cualquier clienta que aún no hubiera firmado su consentimiento.
+      consentimiento: c.consentimiento && typeof c.consentimiento === "object" ? c.consentimiento : null,
     };
   }
 
@@ -1093,7 +1098,15 @@
       const { db, collection, onSnapshot } = fb();
 
       const unsubClients = onSnapshot(collection(db, "clients"), snap => {
-        const list = snap.docs.map(d => sanitizeClient({ id: d.id, ...d.data() }));
+        // Las fotos NO se guardan en Firestore (pesan demasiado); viven en localStorage
+        // de este dispositivo. Por eso, cada vez que llega una actualización desde la nube,
+        // hay que volver a "pegarle" las fotos guardadas localmente a cada clienta, o de lo
+        // contrario la app pensaría que nunca tuvo fotos y las mostraría como si hubieran desaparecido.
+        const list = snap.docs.map(d => {
+          const c = sanitizeClient({ id: d.id, ...d.data() });
+          const fotosLocales = loadPhotos(c.id);
+          return fotosLocales.length ? { ...c, fotos: fotosLocales } : c;
+        });
         setClients(list);
         setLoading(false);
       }, err => { console.error(err); showToast("Error al sincronizar clientas."); setLoading(false); });
@@ -1126,6 +1139,7 @@
         await fsDeleteClient(id);
         const relatedApts = apts.filter(a => a.clienteId === id);
         for (const a of relatedApts) await fsDeleteAppointment(a.id);
+        try { localStorage.removeItem(SK.PHOTOS + id); } catch {}
         setView("clientes");
         showToast("Ficha eliminada");
       } catch (e) { console.error(e); showToast("Error al eliminar."); }
@@ -1146,6 +1160,13 @@
       const clientesSanitizados = (Array.isArray(data.clientes) ? data.clientes : []).map(sanitizeClient);
       const aptsSanitizadas = (Array.isArray(data.citas) ? data.citas : []).map(sanitizeAppointment).filter(Boolean);
       try {
+        // El aviso le dice a la usuaria que esto REEMPLAZA todo lo actual, así que hay que
+        // borrar de verdad lo que ya existe (y no solo mezclar) antes de escribir el respaldo.
+        const idsNuevos = new Set(clientesSanitizados.map(c => c.id));
+        const idsAptsNuevas = new Set(aptsSanitizadas.map(a => a.id));
+        for (const c of clients) if (!idsNuevos.has(c.id)) await fsDeleteClient(c.id);
+        for (const a of apts) if (!idsAptsNuevas.has(a.id)) await fsDeleteAppointment(a.id);
+
         for (const c of clientesSanitizados) {
           if (c.fotos && c.fotos.length) savePhotos(c.id, c.fotos);
           await fsSaveClient({ ...c, fotos: [] });
@@ -1153,7 +1174,7 @@
         for (const a of aptsSanitizadas) await fsSaveAppointment(a);
         showToast("✅ Respaldo restaurado con éxito");
       } catch (e) { console.error(e); showToast("Error al restaurar el respaldo."); }
-    }, [showToast]);
+    }, [showToast, clients, apts]);
 
     const approveRequest = useCallback(async (request, bloques) => {
       try {
@@ -1372,11 +1393,6 @@
     const [editInfo, setEditInfo]   = useState(false);
     const [newEntry, setNewEntry]   = useState(false);
     const [confirmDel, setConfirmDel] = useState(false);
-
-    useEffect(() => {
-      const saved = loadPhotos(client.id);
-      if (saved.length && !client.fotos.length) onUpdate({...client, fotos:saved});
-    }, [client.id]);
 
     const sorted   = useMemo(() => [...client.historial].sort((a,b)=>b.fecha.localeCompare(a.fecha)), [client.historial]);
     const initials = client.nombre.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]?.toUpperCase()).join("");
