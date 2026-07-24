@@ -930,10 +930,9 @@
   // Franjas de media hora en las que se puede agendar una cita (usado tanto al agendar
   // manualmente desde la Agenda como al aprobar solicitudes públicas del catálogo).
   const HORAS_DIA = [
-    "8:00 AM","8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM",
+    "9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM",
     "12:00 PM","12:30 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM",
-    "3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM","5:30 PM","6:00 PM","6:30 PM",
-    "7:00 PM","7:30 PM","8:00 PM","8:30 PM","9:00 PM","9:30 PM","10:00 PM",
+    "3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM","5:30 PM","6:00 PM",
   ];
 
   const catLabel = id => SERVICE_CATS.find(c => c.id === id)?.label || "Servicio";
@@ -1011,6 +1010,23 @@
   }
 
   function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+
+  // Convierte una hora en formato "6:00 PM" / "10:30 AM" a minutos totales desde medianoche,
+  // para poder ordenar citas cronológicamente (comparar como texto NO funciona: "10:00 AM"
+  // queda antes que "6:00 PM" alfabéticamente aunque las 6 PM sea más tarde en el día).
+  function horaAMinutos(hora) {
+    if (typeof hora !== "string") return 0;
+    const match = hora.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return 0;
+    let [, h, m, ampm] = match;
+    h = parseInt(h, 10);
+    m = parseInt(m, 10);
+    ampm = ampm.toUpperCase();
+    if (ampm === "AM" && h === 12) h = 0;      // 12:00 AM = medianoche = hora 0
+    if (ampm === "PM" && h !== 12) h += 12;     // 1 PM–11 PM = 13–23; 12 PM se queda en 12
+    return h * 60 + m;
+  }
+
   function startOfWeek(d) { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); x.setHours(0,0,0,0); return x; }
   function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
   function weekdayShort(d) { return d.toLocaleDateString("es-ES", {weekday:"short"}).replace(".",""); }
@@ -2099,7 +2115,7 @@
           <div className="agenda-grid" style={{gridTemplateColumns:`repeat(${days.length},1fr)`,minWidth:mode==="semana"?"580px":"auto"}}>
             {days.map(d => {
               const key = dateKey(d);
-              const dayApts = (byDay[key]||[]).sort((a,b)=>a.hora.localeCompare(b.hora));
+              const dayApts = (byDay[key]||[]).sort((a,b)=>horaAMinutos(a.hora)-horaAMinutos(b.hora));
               const isToday = key===localDate();
               return (
                 <div key={key} style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -2394,7 +2410,11 @@
   function RequestsPanel({ requests, apts, onApprove, onReject }) {
     const [processing, setProcessing] = useState(null);
     const [approving, setApproving] = useState(null); // solicitud abierta en el modal de aprobación
-    const sorted = useMemo(() => [...requests].sort((a,b) => (a.fecha+a.hora).localeCompare(b.fecha+b.hora)), [requests]);
+    const sorted = useMemo(() => [...requests].sort((a,b) => {
+      const fechaCmp = a.fecha.localeCompare(b.fecha); // formato YYYY-MM-DD, sí se compara bien como texto
+      if (fechaCmp !== 0) return fechaCmp;
+      return horaAMinutos(a.hora) - horaAMinutos(b.hora);
+    }), [requests]);
 
     const handleReject = async (req) => {
       setProcessing(req.id);
