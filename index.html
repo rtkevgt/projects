@@ -1155,11 +1155,11 @@
 
     const updateOneClient = useCallback(async (updated) => {
       try {
-        await fsSaveClient({ ...updated, fotos: [] });
-        if (updated.fotos?.length) {
+        if (updated.fotos) {
           const r = savePhotos(updated.id, updated.fotos);
           if (r === "quota") showToast("⚠️ Sin espacio para fotos.");
         }
+        await fsSaveClient({ ...updated, fotos: [] });
       } catch (e) { console.error(e); showToast("Error al guardar."); }
     }, [showToast]);
 
