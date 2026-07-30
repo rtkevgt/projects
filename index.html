@@ -1154,6 +1154,9 @@
     }, [firebaseReady, showToast]);
 
     const updateOneClient = useCallback(async (updated) => {
+      // Actualización optimista: refleja el cambio (ej. una foto nueva) de inmediato en pantalla,
+      // sin esperar a que vuelva la confirmación de Firestore.
+      setClients(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
       try {
         if (updated.fotos) {
           const r = savePhotos(updated.id, updated.fotos);
