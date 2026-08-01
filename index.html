@@ -1154,14 +1154,13 @@
     }, [firebaseReady, showToast]);
 
     const updateOneClient = useCallback(async (updated) => {
+      // Actualización optimista: refleja el cambio (ej. una foto nueva) de inmediato en pantalla,
+      // sin esperar a que vuelva la confirmación de Firestore.
+      setClients(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
       try {
-        // Guardamos las fotos en localStorage PRIMERO (es instantáneo) y solo después
-        // avisamos a Firestore. Si se hace al revés, la confirmación de Firestore puede
-        // llegar antes de que la foto termine de guardarse localmente, y la app mostraría
-        // la ficha como si la foto nunca se hubiera subido.
-        if (updated.fotos?.length) {
+        if (updated.fotos) {
           const r = savePhotos(updated.id, updated.fotos);
-          if (r === "quota") { showToast("⚠️ Sin espacio para fotos."); return; }
+          if (r === "quota") showToast("⚠️ Sin espacio para fotos.");
         }
         await fsSaveClient({ ...updated, fotos: [] });
       } catch (e) { console.error(e); showToast("Error al guardar."); }
@@ -1563,30 +1562,29 @@
   function PhotosPanel({ client, onUpdate, showToast }) {
     const fileRef  = useRef(null);
     const camRef   = useRef(null);
+    const videoRef = useRef(null);
+    const streamRef = useRef(null);
     const [lightbox, setLightbox]   = useState(null);
     const [confirmDel, setConfirmDel] = useState(null);
-    const [subiendo, setSubiendo] = useState(false);
+    const [camOpen, setCamOpen] = useState(false);
     const fotos = client.fotos || [];
+
+    const addPhotos = newF => {
+      const all = [...fotos, ...newF];
+      onUpdate({ ...client, fotos: all });
+      const res = savePhotos(client.id, all);
+      if (res === "quota") showToast("⚠️ Sin espacio para fotos.");
+    };
 
     const handleFiles = files => {
       const arr = Array.from(files).filter(f=>f.type.startsWith("image/"));
       if (!arr.length) return;
-      setSubiendo(true);
       let loaded=0; const newF=[];
       arr.forEach(file => {
         const r = new FileReader();
-        r.onerror = () => {
-          loaded++;
-          showToast("⚠️ No se pudo leer una de las fotos.");
-          if (loaded===arr.length) setSubiendo(false);
-        };
         r.onload = e => {
           newF.push({id:uid("f"),dataUrl:e.target.result,nombre:file.name,fecha:localDate()});
-          if (++loaded===arr.length) {
-            const next={...client,fotos:[...fotos,...newF]};
-            onUpdate(next);
-            setSubiendo(false);
-          }
+          if (++loaded===arr.length) addPhotos(newF);
         };
         r.readAsDataURL(file);
       });
@@ -1594,11 +1592,48 @@
 
     const delPhoto = id => { const upd=fotos.filter(f=>f.id!==id); onUpdate({...client,fotos:upd}); savePhotos(client.id,upd); setConfirmDel(null); if(lightbox?.id===id) setLightbox(null); };
 
+    const stopCamera = () => {
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+      setCamOpen(false);
+    };
+
+    const openCamera = async () => {
+      // Cámara en vivo (funciona igual en celular o computadora). Si el dispositivo no tiene
+      // cámara, no da permiso, o el navegador no soporta esto, usamos el selector nativo como respaldo.
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+        streamRef.current = stream;
+        setCamOpen(true);
+      } catch (e) {
+        console.error(e);
+        if (camRef.current) camRef.current.click();
+        else showToast("No se pudo acceder a la cámara.");
+      }
+    };
+
+    useEffect(() => {
+      if (camOpen && videoRef.current && streamRef.current) videoRef.current.srcObject = streamRef.current;
+    }, [camOpen]);
+
+    useEffect(() => () => { streamRef.current?.getTracks().forEach(t => t.stop()); }, []);
+
+    const takeShot = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      addPhotos([{ id: uid("f"), dataUrl, nombre: "foto.jpg", fecha: localDate() }]);
+      stopCamera();
+    };
+
     return (
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-          <button className="btn-primary-sm" disabled={subiendo} onClick={()=>fileRef.current?.click()}><Ico n="image" s={14}/> {subiendo ? "Subiendo…" : "Adjuntar foto"}</button>
-          <button className="btn-primary-sm" style={{background:"var(--ink-soft)"}} disabled={subiendo} onClick={()=>camRef.current?.click()}><Ico n="camera" s={14}/> {subiendo ? "Subiendo…" : "Tomar foto"}</button>
+          <button className="btn-primary-sm" onClick={()=>fileRef.current?.click()}><Ico n="image" s={14}/> Adjuntar foto</button>
+          <button className="btn-primary-sm" style={{background:"var(--ink-soft)"}} onClick={openCamera}><Ico n="camera" s={14}/> Tomar foto</button>
           <input ref={fileRef} type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>{if(e.target.files?.length){handleFiles(e.target.files);e.target.value="";}}}/>
           <input ref={camRef}  type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={e=>{if(e.target.files?.length){handleFiles(e.target.files);e.target.value="";}}}/>
         </div>
@@ -1608,6 +1643,15 @@
           <div className="photo-grid">{fotos.map(foto=><div key={foto.id} className="photo-thumb" onClick={()=>setLightbox(foto)}><img src={foto.dataUrl} alt={foto.nombre}/><div className="photo-date">{foto.fecha}</div><button className="photo-del" onClick={e=>{e.stopPropagation();setConfirmDel(foto.id);}}><Ico n="trash" s={12}/></button></div>)}</div>
         )}
         {confirmDel && <Modal onClose={()=>setConfirmDel(null)} title="Eliminar foto" narrow><p style={{fontSize:14,color:"var(--ink)",lineHeight:1.6}}>¿Eliminar esta fotografía?</p><div className="modal-actions"><button className="btn-ghost" onClick={()=>setConfirmDel(null)}>Cancelar</button><button className="btn-danger" onClick={()=>delPhoto(confirmDel)}>Eliminar</button></div></Modal>}
+        {camOpen && (
+          <div style={{position:"fixed",inset:0,background:"rgba(40,25,20,.92)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:400,padding:20}}>
+            <video ref={videoRef} autoPlay playsInline style={{maxWidth:"92vw",maxHeight:"75vh",borderRadius:16,boxShadow:"0 20px 60px rgba(0,0,0,.5)"}}/>
+            <div style={{display:"flex",gap:14,marginTop:20}}>
+              <button className="btn-ghost" style={{background:"#fff"}} onClick={stopCamera}>Cancelar</button>
+              <button className="btn-primary-sm" onClick={takeShot}><Ico n="camera" s={14}/> Capturar</button>
+            </div>
+          </div>
+        )}
         {lightbox && (
           <div style={{position:"fixed",inset:0,background:"rgba(40,25,20,.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:400,padding:20,backdropFilter:"blur(8px)"}} onClick={()=>setLightbox(null)}>
             <div style={{position:"relative",maxWidth:"90vw",maxHeight:"90vh"}} onClick={e=>e.stopPropagation()}>
