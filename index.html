@@ -1028,6 +1028,36 @@
     return h * 60 + m;
   }
 
+  // Inversa de horaAMinutos: convierte minutos totales del día de vuelta a "6:00 PM".
+  function minutosAHora(totalMin) {
+    let h = Math.floor(totalMin / 60) % 24;
+    const m = totalMin % 60;
+    const ampm = h < 12 ? "AM" : "PM";
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+  }
+
+  // Dado el array de bloques elegidos (cada uno representa una franja de 30 min que EMPIEZA
+  // en esa hora), calcula la hora real en que termina el trabajo: 30 min después del último bloque.
+  function calcularFinBloques(bloques) {
+    if (!bloques.length) return "";
+    const ultimoInicio = horaAMinutos(bloques[bloques.length - 1]);
+    return minutosAHora(ultimoInicio + 30);
+  }
+
+  // Detecta si los bloques elegidos tienen huecos (no son consecutivos de 30 en 30 min).
+  // Esto pasa si, por ejemplo, se seleccionan las 10:00 AM y luego sin querer las 7:00 PM
+  // sin marcar todo lo del medio: el rango se vería larguísimo pero mal representado.
+  function bloquesTieneHuecos(bloques) {
+    if (bloques.length < 2) return false;
+    for (let i = 1; i < bloques.length; i++) {
+      const diff = horaAMinutos(bloques[i]) - horaAMinutos(bloques[i - 1]);
+      if (diff !== 30) return true;
+    }
+    return false;
+  }
+
   function startOfWeek(d) { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); x.setHours(0,0,0,0); return x; }
   function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
   function weekdayShort(d) { return d.toLocaleDateString("es-ES", {weekday:"short"}).replace(".",""); }
@@ -1154,13 +1184,14 @@
     }, [firebaseReady, showToast]);
 
     const updateOneClient = useCallback(async (updated) => {
-      // Actualización optimista: refleja el cambio (ej. una foto nueva) de inmediato en pantalla,
-      // sin esperar a que vuelva la confirmación de Firestore.
-      setClients(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
       try {
-        if (updated.fotos) {
+        // Guardamos las fotos en localStorage PRIMERO (es instantáneo) y solo después
+        // avisamos a Firestore. Si se hace al revés, la confirmación de Firestore puede
+        // llegar antes de que la foto termine de guardarse localmente, y la app mostraría
+        // la ficha como si la foto nunca se hubiera subido.
+        if (updated.fotos?.length) {
           const r = savePhotos(updated.id, updated.fotos);
-          if (r === "quota") showToast("⚠️ Sin espacio para fotos.");
+          if (r === "quota") { showToast("⚠️ Sin espacio para fotos."); return; }
         }
         await fsSaveClient({ ...updated, fotos: [] });
       } catch (e) { console.error(e); showToast("Error al guardar."); }
@@ -1562,29 +1593,30 @@
   function PhotosPanel({ client, onUpdate, showToast }) {
     const fileRef  = useRef(null);
     const camRef   = useRef(null);
-    const videoRef = useRef(null);
-    const streamRef = useRef(null);
     const [lightbox, setLightbox]   = useState(null);
     const [confirmDel, setConfirmDel] = useState(null);
-    const [camOpen, setCamOpen] = useState(false);
+    const [subiendo, setSubiendo] = useState(false);
     const fotos = client.fotos || [];
-
-    const addPhotos = newF => {
-      const all = [...fotos, ...newF];
-      onUpdate({ ...client, fotos: all });
-      const res = savePhotos(client.id, all);
-      if (res === "quota") showToast("⚠️ Sin espacio para fotos.");
-    };
 
     const handleFiles = files => {
       const arr = Array.from(files).filter(f=>f.type.startsWith("image/"));
       if (!arr.length) return;
+      setSubiendo(true);
       let loaded=0; const newF=[];
       arr.forEach(file => {
         const r = new FileReader();
+        r.onerror = () => {
+          loaded++;
+          showToast("⚠️ No se pudo leer una de las fotos.");
+          if (loaded===arr.length) setSubiendo(false);
+        };
         r.onload = e => {
           newF.push({id:uid("f"),dataUrl:e.target.result,nombre:file.name,fecha:localDate()});
-          if (++loaded===arr.length) addPhotos(newF);
+          if (++loaded===arr.length) {
+            const next={...client,fotos:[...fotos,...newF]};
+            onUpdate(next);
+            setSubiendo(false);
+          }
         };
         r.readAsDataURL(file);
       });
@@ -1592,48 +1624,11 @@
 
     const delPhoto = id => { const upd=fotos.filter(f=>f.id!==id); onUpdate({...client,fotos:upd}); savePhotos(client.id,upd); setConfirmDel(null); if(lightbox?.id===id) setLightbox(null); };
 
-    const stopCamera = () => {
-      streamRef.current?.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-      setCamOpen(false);
-    };
-
-    const openCamera = async () => {
-      // Cámara en vivo (funciona igual en celular o computadora). Si el dispositivo no tiene
-      // cámara, no da permiso, o el navegador no soporta esto, usamos el selector nativo como respaldo.
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-        streamRef.current = stream;
-        setCamOpen(true);
-      } catch (e) {
-        console.error(e);
-        if (camRef.current) camRef.current.click();
-        else showToast("No se pudo acceder a la cámara.");
-      }
-    };
-
-    useEffect(() => {
-      if (camOpen && videoRef.current && streamRef.current) videoRef.current.srcObject = streamRef.current;
-    }, [camOpen]);
-
-    useEffect(() => () => { streamRef.current?.getTracks().forEach(t => t.stop()); }, []);
-
-    const takeShot = () => {
-      const video = videoRef.current;
-      if (!video) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-      canvas.getContext("2d").drawImage(video, 0, 0);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-      addPhotos([{ id: uid("f"), dataUrl, nombre: "foto.jpg", fecha: localDate() }]);
-      stopCamera();
-    };
-
     return (
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-          <button className="btn-primary-sm" onClick={()=>fileRef.current?.click()}><Ico n="image" s={14}/> Adjuntar foto</button>
-          <button className="btn-primary-sm" style={{background:"var(--ink-soft)"}} onClick={openCamera}><Ico n="camera" s={14}/> Tomar foto</button>
+          <button className="btn-primary-sm" disabled={subiendo} onClick={()=>fileRef.current?.click()}><Ico n="image" s={14}/> {subiendo ? "Subiendo…" : "Adjuntar foto"}</button>
+          <button className="btn-primary-sm" style={{background:"var(--ink-soft)"}} disabled={subiendo} onClick={()=>camRef.current?.click()}><Ico n="camera" s={14}/> {subiendo ? "Subiendo…" : "Tomar foto"}</button>
           <input ref={fileRef} type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>{if(e.target.files?.length){handleFiles(e.target.files);e.target.value="";}}}/>
           <input ref={camRef}  type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={e=>{if(e.target.files?.length){handleFiles(e.target.files);e.target.value="";}}}/>
         </div>
@@ -1643,15 +1638,6 @@
           <div className="photo-grid">{fotos.map(foto=><div key={foto.id} className="photo-thumb" onClick={()=>setLightbox(foto)}><img src={foto.dataUrl} alt={foto.nombre}/><div className="photo-date">{foto.fecha}</div><button className="photo-del" onClick={e=>{e.stopPropagation();setConfirmDel(foto.id);}}><Ico n="trash" s={12}/></button></div>)}</div>
         )}
         {confirmDel && <Modal onClose={()=>setConfirmDel(null)} title="Eliminar foto" narrow><p style={{fontSize:14,color:"var(--ink)",lineHeight:1.6}}>¿Eliminar esta fotografía?</p><div className="modal-actions"><button className="btn-ghost" onClick={()=>setConfirmDel(null)}>Cancelar</button><button className="btn-danger" onClick={()=>delPhoto(confirmDel)}>Eliminar</button></div></Modal>}
-        {camOpen && (
-          <div style={{position:"fixed",inset:0,background:"rgba(40,25,20,.92)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:400,padding:20}}>
-            <video ref={videoRef} autoPlay playsInline style={{maxWidth:"92vw",maxHeight:"75vh",borderRadius:16,boxShadow:"0 20px 60px rgba(0,0,0,.5)"}}/>
-            <div style={{display:"flex",gap:14,marginTop:20}}>
-              <button className="btn-ghost" style={{background:"#fff"}} onClick={stopCamera}>Cancelar</button>
-              <button className="btn-primary-sm" onClick={takeShot}><Ico n="camera" s={14}/> Capturar</button>
-            </div>
-          </div>
-        )}
         {lightbox && (
           <div style={{position:"fixed",inset:0,background:"rgba(40,25,20,.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:400,padding:20,backdropFilter:"blur(8px)"}} onClick={()=>setLightbox(null)}>
             <div style={{position:"relative",maxWidth:"90vw",maxHeight:"90vh"}} onClick={e=>e.stopPropagation()}>
@@ -2177,6 +2163,18 @@
               const key = dateKey(d);
               const dayApts = (byDay[key]||[]).sort((a,b)=>horaAMinutos(a.hora)-horaAMinutos(b.hora));
               const isToday = key===localDate();
+              // Detecta si alguna cita del día comparte bloques de horario con otra (no debería
+              // pasar nunca, pero sirve de aviso visual si dos citas se crearon casi al mismo
+              // tiempo y una no alcanzó a ver los bloques que la otra ya había ocupado).
+              const activas = dayApts.filter(a => a.estado !== "cancelada");
+              const idsConChoque = new Set();
+              for (let i = 0; i < activas.length; i++) {
+                for (let j = i + 1; j < activas.length; j++) {
+                  const bA = Array.isArray(activas[i].bloques) && activas[i].bloques.length ? activas[i].bloques : [activas[i].hora];
+                  const bB = Array.isArray(activas[j].bloques) && activas[j].bloques.length ? activas[j].bloques : [activas[j].hora];
+                  if (bA.some(h => bB.includes(h))) { idsConChoque.add(activas[i].id); idsConChoque.add(activas[j].id); }
+                }
+              }
               return (
                 <div key={key} style={{display:"flex",flexDirection:"column",gap:8}}>
                   <div className={`agenda-col-header${isToday?" today":""}`}>
@@ -2187,6 +2185,7 @@
                     {dayApts.length===0 && <p style={{fontSize:11,color:"var(--ink-muted)",textAlign:"center",padding:"8px 0"}}>Sin citas</p>}
                     {dayApts.map(a => (
                       <AptCard key={a.id} apt={a}
+                        solapada={idsConChoque.has(a.id)}
                         onEdit={()=>setEditing(a)}
                         onOpenClient={()=>a.clienteId&&onOpenClient(a.clienteId)}
                         onCancel={id=>{const apt=apts.find(x=>x.id===id);if(apt)onUpdate([{...apt,estado:"cancelada"}]);showToast("Cita cancelada");}}
@@ -2205,15 +2204,18 @@
     );
   }
 
-  function AptCard({ apt, onEdit, onOpenClient, onCancel, onDelete }) {
+  function AptCard({ apt, onEdit, onOpenClient, onCancel, onDelete, solapada }) {
     const [confirmDel, setConfirmDel] = useState(false);
     const cancelada = apt.estado === "cancelada";
     const bloques = Array.isArray(apt.bloques) && apt.bloques.length ? apt.bloques : [apt.hora];
     const rangoHorario = bloques.length > 1
-      ? `${bloques[0]} – ${bloques[bloques.length - 1]}`
+      ? `${bloques[0]} – ${calcularFinBloques(bloques)}`
       : bloques[0];
     return (
-      <div className={`apt-card${cancelada?" cancelada":" normal"}`}>
+      <div className={`apt-card${cancelada?" cancelada":" normal"}`} style={solapada && !cancelada ? {border:"1.5px solid var(--danger)"} : undefined}>
+        {solapada && !cancelada && (
+          <div style={{fontSize:10,fontWeight:700,color:"var(--danger)",marginBottom:2}}>⚠️ Choca con otra cita</div>
+        )}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <span className="apt-time">{rangoHorario}</span>
           {cancelada && <span style={{fontSize:10,fontWeight:700,color:"var(--danger)",background:"#FBEAE0",padding:"2px 8px",borderRadius:99}}>CANCELADA</span>}
@@ -2355,7 +2357,8 @@
             </div>
             {bloquesOrdenados.length > 0 && (
               <p style={{ fontSize:12, color:"var(--ink-soft)" }}>
-                De <strong>{bloquesOrdenados[0]}</strong> a aprox. <strong>{bloquesOrdenados[bloquesOrdenados.length-1]}</strong> · {duracionAprox >= 60 ? `${Math.floor(duracionAprox/60)}h ${duracionAprox%60 ? duracionAprox%60+"min" : ""}` : `${duracionAprox} min`}
+                De <strong>{bloquesOrdenados[0]}</strong> a <strong>{calcularFinBloques(bloquesOrdenados)}</strong> · {duracionAprox >= 60 ? `${Math.floor(duracionAprox/60)}h ${duracionAprox%60 ? duracionAprox%60+"min" : ""}` : `${duracionAprox} min`}
+                {bloquesTieneHuecos(bloquesOrdenados) && <span style={{color:"var(--danger)",display:"block",marginTop:4}}>⚠️ Ojo: hay horas sueltas seleccionadas, no un bloque continuo.</span>}
               </p>
             )}
           </div>
@@ -2630,7 +2633,9 @@
         <p style={{ fontSize:12.5, color:"var(--ink-soft)", marginBottom:4 }}>
           {bloquesOrdenados.length === 0
             ? "Selecciona al menos un horario."
-            : <>Ocupado desde <strong>{bloquesOrdenados[0]}</strong> hasta aproximadamente <strong>{bloquesOrdenados[bloquesOrdenados.length-1]}</strong> · {duracionAprox >= 60 ? `${Math.floor(duracionAprox/60)}h ${duracionAprox%60 ? duracionAprox%60+"min" : ""}` : `${duracionAprox} min`}</>
+            : <>Ocupado desde <strong>{bloquesOrdenados[0]}</strong> hasta <strong>{calcularFinBloques(bloquesOrdenados)}</strong> · {duracionAprox >= 60 ? `${Math.floor(duracionAprox/60)}h ${duracionAprox%60 ? duracionAprox%60+"min" : ""}` : `${duracionAprox} min`}
+                {bloquesTieneHuecos(bloquesOrdenados) && <span style={{color:"var(--danger)",display:"block",marginTop:4}}>⚠️ Ojo: hay horas sueltas seleccionadas, no un bloque continuo.</span>}
+              </>
           }
         </p>
 
